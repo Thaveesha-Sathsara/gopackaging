@@ -1,0 +1,3 @@
+rZOxjH4oRu9sGUjU   tsvithana_db_user
+connection string = mongodb+srv://tsvithana_db_user:rZOxjH4oRu9sGUjU@cluster0.wzx5ela.mongodb.net/?appName=Cluster0
+mongodb+srv://tsvithana_db_user:rZOxjH4oRu9sGUjU@cluster0.wzx5ela.mongodb.net/?appName=Cluster0
