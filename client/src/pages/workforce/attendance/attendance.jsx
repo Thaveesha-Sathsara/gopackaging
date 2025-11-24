@@ -9,8 +9,8 @@ import { Columns } from "./AttendanceSummaryColumns";
 
 const Attendance = () => {
     const [dateRange, setDateRange] = useState({
-        from: new Date(),
-        to: new Date(),
+        from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
     });
 
     const { attendanceSummary, isLoadingSummary } = useAttendance(

@@ -8,7 +8,7 @@ import { PayrollColumns } from "./PayrollColumns"; // We create this next
 const Payroll = () => {
     const [dateRange, setDateRange] = useState({
         from: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Default to 1st of month
-        to: new Date(),
+        to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
     });
 
     const { payrollSummary, isLoadingSummary } = usePayroll(dateRange.from, dateRange.to);

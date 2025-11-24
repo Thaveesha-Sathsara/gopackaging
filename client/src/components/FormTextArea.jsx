@@ -5,7 +5,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/fomr";
+} from "./ui/form";
 import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
 

@@ -24,7 +24,7 @@ const RootLayout = () => {
                 <AppBreadcrumb />
               </div>
               <div className="flex gap-4 items-right">
-                {/* <ModeToggle /> */}
+                <ModeToggle />
               </div>
             </header>
             <main className="flex-1 overflow-auto bg-slate-200 dark:bg-[#12131d]">

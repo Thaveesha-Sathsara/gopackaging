@@ -3,57 +3,98 @@ const Employee = require("../../models/workforce/employee.model");
 const mongoose = require("mongoose");
 
 /**
- * @desc    Get Payroll Summary (Total Hours * Hourly Rate) for all employees in a range
+ * @desc    Get Payroll Summary with ALLOWANCES logic
  * @route   GET /api/workforce/payroll/summary
  */
 const getPayrollSummary = async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
-
         if (!startDate || !endDate) return res.status(400).json({ message: "Date range required" });
 
+        // 1. Aggregate basic attendance data (Work Pay + OT Pay + Days Count)
         const payrollData = await Attendance.aggregate([
             {
                 $match: {
-                    date: {
-                        $gte: new Date(startDate),
-                        $lte: new Date(endDate),
-                    },
+                    date: { $gte: new Date(startDate), $lte: new Date(endDate) },
+                    status: "Present" // Only count present days for the 25-day rule
                 },
             },
             {
                 $group: {
                     _id: "$employee",
-                    totalHours: { $sum: "$totalHours" },
-                    // ✅ SUM THE SAVED DAILY PAY instead of calculating dynamically
-                    totalPay: { $sum: "$dailyPay" } 
+                    daysPresent: { $sum: 1 }, // Count days present for allowance logic
+                    totalNormalHours: { $sum: "$normalHours" },
+                    totalOtHours: { $sum: "$otHours" },
+                    totalDoubleOtHours: { $sum: "$doubleOtHours" },
+                    totalBasicPay: { $sum: "$normalPay" },
+                    totalOtPay: { $sum: "$otPay" },
+                    totalDoubleOtPay: { $sum: "$doubleOtPay" },
+                    grossWorkPay: { $sum: "$dailyPay" } // normal + ot
                 },
             },
-            {
-                $lookup: {
-                    from: "employees",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "employeeDetails",
-                },
-            },
-            { $unwind: "$employeeDetails" },
-            {
-                $project: {
-                    _id: 0,
-                    employeeId: "$_id",
-                    employeeID: "$employeeDetails.employeeID",
-                    employeeName: "$employeeDetails.employeeName",
-                    position: "$employeeDetails.position",
-                    hourlyRate: "$employeeDetails.salary", 
-                    totalHours: 1,
-                    totalPay: 1,
-                },
-            },
-            { $sort: { employeeID: 1 } }
         ]);
 
-        res.status(200).json(payrollData);
+        // 2. Fetch Employee details to calculate Allowances
+        // We need to manually merge because allowances are in the Employee Model, not Attendance
+        const employeeIds = payrollData.map(p => p._id);
+        const employees = await Employee.find({ _id: { $in: employeeIds } });
+        
+        const empMap = {};
+        employees.forEach(emp => {
+            empMap[emp._id.toString()] = emp;
+        });
+
+        // 3. Final Calculation with Allowances
+        const finalPayroll = payrollData.map(record => {
+            const emp = empMap[record._id.toString()];
+            if (!emp) return null;
+
+            // --- ALLOWANCE LOGIC ---
+            // A. Fixed Allowances (Meal, Medical) - Add if > 0
+            const mealAllowance = emp.allowanceMeal || 0;
+            const medicalAllowance = emp.allowanceMedical || 0;
+
+            // B. Attendance Allowance (Only if present >= 25 days)
+            const attendanceAllowance = (record.daysPresent >= 25) ? (emp.allowanceAttendance || 0) : 0;
+
+            const totalAllowances = mealAllowance + medicalAllowance + attendanceAllowance;
+            const finalTotalPay = record.grossWorkPay + totalAllowances;
+
+            return {
+                employeeId: emp._id,
+                employeeID: emp.employeeID,
+                employeeName: emp.employeeName,
+                position: emp.position,
+                
+                // Hours
+                totalHours: (record.totalNormalHours + record.totalOtHours).toFixed(2),
+                daysPresent: record.daysPresent,
+                
+                // Rate (Display Basic Hourly Rate)
+                hourlyRate: emp.salary,
+
+                // Financials
+                basicPay: record.totalBasicPay,
+                otPay: record.totalOtPay,
+                allowances: totalAllowances,
+                
+                // Allowances Breakdown (Optional, for frontend tooltip if needed)
+                allowanceBreakdown: {
+                    meal: mealAllowance,
+                    medical: medicalAllowance,
+                    attendance: attendanceAllowance
+                },
+
+                totalPay: finalTotalPay,
+                status: "Active"
+            };
+        });
+
+        // Remove nulls and sort
+        const sortedPayroll = finalPayroll.filter(p => p !== null).sort((a, b) => a.employeeID.localeCompare(b.employeeID));
+
+        res.status(200).json(sortedPayroll);
+
     } catch (error) {
         console.error("Error fetching payroll summary:", error);
         res.status(500).json({ message: error.message });
@@ -61,7 +102,7 @@ const getPayrollSummary = async (req, res) => {
 };
 
 /**
- * @desc    Get Detailed Payroll (Daily breakdown) for ONE employee
+ * @desc    Get Detailed Payroll for ONE employee
  * @route   GET /api/workforce/payroll/employee/:id
  */
 const getEmployeePayrollDetails = async (req, res) => {
@@ -69,28 +110,41 @@ const getEmployeePayrollDetails = async (req, res) => {
         const { id } = req.params;
         const { startDate, endDate } = req.query;
 
-        // 1. Get Employee Details (for the rate)
         const employee = await Employee.findById(id);
         if (!employee) return res.status(404).json({ message: "Employee not found" });
 
-        // 2. Get Attendance Records
-        const attendanceRecords = await Attendance.find({
+        const records = await Attendance.find({
             employee: id,
-            date: {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate),
-            }
+            date: { $gte: new Date(startDate), $lte: new Date(endDate) }
         }).sort({ date: 1 });
 
-        // 3. Calculate Daily Pay for each record
-        const detailedRecords = attendanceRecords.map(record => ({
-            _id: record._id,
-            date: record.date,
-            startTime: record.startTime,
-            endTime: record.endTime,
-            totalHours: record.totalHours,
-            hourlyRate: employee.salary,
-            dailyPay: record.totalHours * employee.salary
+        // Calculate Totals for the header
+        const daysPresent = records.filter(r => r.status === "Present").length;
+        
+        // Calculate Allowances for this period
+        const mealAllowance = employee.allowanceMeal || 0;
+        const medicalAllowance = employee.allowanceMedical || 0;
+        const attendanceAllowance = (daysPresent >= 25) ? (employee.allowanceAttendance || 0) : 0;
+        const totalAllowances = mealAllowance + medicalAllowance + attendanceAllowance;
+
+        const formattedRecords = records.map(r => ({
+            _id: r._id,
+            date: r.date,
+            startTime: r.startTime,
+            endTime: r.endTime,
+            status: r.status,
+            
+            // New detailed fields
+            normalHours: r.normalHours || 0,
+            otHours: r.otHours || 0,
+            hourlyRate: r.hourlyRate,
+            otRate: r.otRate,
+            doubleOtHours: r.doubleOtHours || 0,
+            doubleOtRate: r.doubleOtRate,
+            
+            normalPay: r.normalPay || 0,
+            otPay: r.otPay || 0,
+            dailyPay: r.dailyPay || 0
         }));
 
         res.status(200).json({
@@ -100,11 +154,19 @@ const getEmployeePayrollDetails = async (req, res) => {
                 position: employee.position,
                 hourlyRate: employee.salary
             },
-            records: detailedRecords
+            summary: {
+                daysPresent,
+                totalAllowances,
+                allowanceBreakdown: {
+                    meal: mealAllowance,
+                    medical: medicalAllowance,
+                    attendance: attendanceAllowance
+                }
+            },
+            records: formattedRecords
         });
 
     } catch (error) {
-        console.error("Error fetching employee details:", error);
         res.status(500).json({ message: error.message });
     }
 };

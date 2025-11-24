@@ -4,7 +4,7 @@ import { Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(amount);
+    return new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(amount || 0);
 };
 
 export const PayrollColumns = (dateRange) => [
@@ -19,7 +19,14 @@ export const PayrollColumns = (dateRange) => [
     {
         accessorKey: "totalHours",
         header: ({ column }) => <DataTableColumnHeader column={column} title="Total Hours" />,
-        cell: ({ row }) => <div className="text-center font-medium">{row.getValue("totalHours").toFixed(2)}</div>
+        cell: ({ row }) => {
+             // 🛠️ FIX: Ensure we parse the string to a number first
+             const val = row.getValue("totalHours");
+             const hours = parseFloat(val); 
+             
+             // Check if it's a valid number, otherwise show 0.00
+             return <span className="font-medium">{!isNaN(hours) ? hours.toFixed(2) : "0.00"}</span>;
+        }
     },
     {
         accessorKey: "hourlyRate",
@@ -27,16 +34,22 @@ export const PayrollColumns = (dateRange) => [
         cell: ({ row }) => <div className="text-right">{formatCurrency(row.getValue("hourlyRate"))}</div>
     },
     {
-        accessorKey: "totalPay",
+        accessorKey: "totalPay", 
         header: ({ column }) => <DataTableColumnHeader column={column} title="Total Pay" />,
-        cell: ({ row }) => <div className="text-right font-bold text-green-600">{formatCurrency(row.getValue("totalPay"))}</div>
+        cell: ({ row }) => {
+            const pay = row.getValue("totalPay") || 0; 
+            return <span className="font-bold">{formatCurrency(pay)}</span>;
+        },
     },
     {
         id: "actions",
         cell: ({ row }) => {
             const id = row.original.employeeId;
-            // Pass the current date range to the view page
-            const query = `?from=${dateRange.from?.toISOString()}&to=${dateRange.to?.toISOString()}`;
+            // Handle date range safely
+            const fromStr = dateRange?.from ? dateRange.from.toISOString() : new Date().toISOString();
+            const toStr = dateRange?.to ? dateRange.to.toISOString() : new Date().toISOString();
+            
+            const query = `?from=${fromStr}&to=${toStr}`;
             
             return (
                 <Link to={`/workforce/payroll/employee/${id}${query}`}>

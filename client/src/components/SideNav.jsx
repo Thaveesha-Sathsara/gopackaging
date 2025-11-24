@@ -44,7 +44,7 @@ import {
 import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
-import reactLogo from "../assets/react.svg";
+import reactLogo from "../assets/logo.svg";
 
 const SideNav = () => {
     const data = {
@@ -118,6 +118,11 @@ const SideNav = () => {
                         url: "/reports/production-reports"
                     },
                 ],
+            },
+            {
+                title: "Calendar",
+                icon: CalendarDays,
+                url: "/calendar"
             },
             {
                 title: "Profile",

@@ -4,7 +4,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/src/components/ui/fomr";
+} from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
 import PropTypes from "prop-types";
 import { Skeleton } from "@/src/components/ui/skeleton"; // Corrected the import path

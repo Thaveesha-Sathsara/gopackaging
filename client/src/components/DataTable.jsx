@@ -39,7 +39,7 @@ import { Skeleton } from "./ui/skeleton";
 const DataTable = ({
   columns,
   data,
-  initialPageSize = 5,
+  initialPageSize = 10,
   title,
   subHeading,
   actionButtons,

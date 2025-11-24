@@ -4,22 +4,20 @@ import { usePayroll } from '@/src/hooks/workforce/usePayroll';
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
 import DataTable from "@/src/components/DataTable";
 import { Button } from "@/src/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
-import DataTableColumnHeader from "@/src/components/DataTableCoulmnHeader";
+import { ArrowLeft, Printer, Coins } from "lucide-react";
 
 const PayrollEmployeeView = () => {
     const { id } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     
-    // Get dates from URL or default to today
     const startDate = new Date(searchParams.get("from") || new Date());
     const endDate = new Date(searchParams.get("to") || new Date());
 
     const { employeePayroll, isLoadingEmployee } = usePayroll(startDate, endDate, id);
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(amount);
+        return new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(amount || 0);
     };
 
     const columns = [
@@ -28,12 +26,63 @@ const PayrollEmployeeView = () => {
             header: "Date",
             cell: ({ row }) => new Date(row.getValue("date")).toLocaleDateString()
         },
-        { accessorKey: "startTime", header: "Start" },
-        { accessorKey: "endTime", header: "End" },
-        { accessorKey: "totalHours", header: "Hours" },
+        { 
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => {
+                if (row.original.status === "Leave") return <span className="text-orange-600 font-bold text-xs">Leave</span>;
+                return <span className="text-green-600 font-bold text-xs">Present</span>;
+            }
+        },
+        { 
+            accessorKey: "times", 
+            header: "Time In/Out",
+            cell: ({ row }) => {
+                 if (row.original.status === "Leave") return "-";
+                 return <div className="text-xs">{row.original.startTime} - {row.original.endTime}</div>
+            }
+        },
+        // --- NEW COLUMNS FOR OT BREAKDOWN ---
+        { 
+            accessorKey: "normalHours", 
+            header: "Basic Hrs", 
+            cell: ({ row }) => <span className="text-gray-600">{row.original.normalHours}</span>
+        },
+        // {
+        //     accessorKey: "normalPay",
+        //     header: "Basic Pay",
+        //     cell: ({ row }) => {
+        //         const pay = row.original.normalPay;
+        //         return pay > 0 ? <span className="text-xs text-gray-700">{formatCurrency(pay)}</span> : "-";
+        //     }
+        // },
+        { 
+            accessorKey: "otHours",     
+            header: "OT Hrs", 
+            cell: ({ row }) => {
+                const ot = row.original.otHours;
+                return ot > 0 ? <span className="font-bold text-blue-600">{ot}</span> : <span className="text-gray-300">-</span>;
+            }
+        },
+        // { 
+        //     accessorKey: "otPay", 
+        //     header: "OT Pay", 
+        //     cell: ({ row }) => {
+        //         const pay = row.original.otPay;
+        //         return pay > 0 ? <span className="text-xs text-blue-600">{formatCurrency(pay)}</span> : "-";
+        //     }
+        // },
+        {
+            accessorKey: "doubleOtHours", 
+            header: "2x OT Hrs", 
+            cell: ({ row }) => {
+                const doubleOtHours = row.original.doubleOtHours;
+                return doubleOtHours > 0 ? <span className="font-bold text-blue-600">{doubleOtHours}</span> : <span className="text-gray-300">-</span>;
+            }
+        },
         { 
             accessorKey: "dailyPay", 
-            header: "Daily Pay",
+            header: "Total Daily",
             cell: ({ row }) => <div className="font-bold text-right">{formatCurrency(row.getValue("dailyPay"))}</div>
         },
     ];
@@ -41,8 +90,11 @@ const PayrollEmployeeView = () => {
     if (isLoadingEmployee) return <div className="p-10">Loading details...</div>;
     if (!employeePayroll) return <div className="p-10">No data found.</div>;
 
-    const { employee, records } = employeePayroll;
-    const totalPayForPeriod = records.reduce((sum, rec) => sum + rec.dailyPay, 0);
+    const { employee, records, summary } = employeePayroll;
+    
+    // Recalculate totals from records
+    const totalWorkPay = records.reduce((sum, rec) => sum + (rec.dailyPay || 0), 0);
+    const finalPayout = totalWorkPay + (summary?.totalAllowances || 0);
 
     return (
         <div className="p-6 flex flex-col gap-6">
@@ -61,28 +113,46 @@ const PayrollEmployeeView = () => {
                 </Button>
             </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Financial Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Hourly Rate</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{formatCurrency(employee.hourlyRate)}</div></CardContent>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-500">Work Pay</CardTitle></CardHeader>
+                    <CardContent><div className="text-2xl font-bold">{formatCurrency(totalWorkPay)}</div></CardContent>
                 </Card>
+                
+                {/* Allowances Card */}
+                <Card className="bg-blue-50 border-blue-100">
+                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                        <CardTitle className="text-sm font-medium text-blue-700">Total Allowances</CardTitle>
+                        <Coins className="h-4 w-4 text-blue-500"/>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-blue-700">{formatCurrency(summary?.totalAllowances)}</div>
+                        <div className="text-xs text-blue-600 mt-1">
+                            Meal: {summary?.allowanceBreakdown?.meal > 0 ? "Yes" : "No"} | 
+                            Med: {summary?.allowanceBreakdown?.medical > 0 ? "Yes" : "No"} | 
+                            Attn: {summary?.allowanceBreakdown?.attendance > 0 ? "Yes" : "No"}
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Hours</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{records.reduce((a, b) => a + b.totalHours, 0).toFixed(2)} hrs</div></CardContent>
+                     <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-500">Days Present</CardTitle></CardHeader>
+                     <CardContent><div className="text-2xl font-bold">{summary?.daysPresent} Days</div></CardContent>
                 </Card>
-                <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Total Pay</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold text-green-700 dark:text-green-400">{formatCurrency(totalPayForPeriod)}</div></CardContent>
+
+                <Card className="bg-green-50 border-green-200">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-green-700">Final Net Pay</CardTitle></CardHeader>
+                    <CardContent><div className="text-2xl font-bold text-green-700">{formatCurrency(finalPayout)}</div></CardContent>
                 </Card>
             </div>
 
             {/* Detail Table */}
-            <div className="bg-white dark:bg-[#1e1e24] rounded-lg shadow">
+            <div className="bg-white rounded-lg shadow border">
                 <DataTable 
                     columns={columns} 
                     data={records} 
-                    title={`Attendance Breakdown (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`}
+                    title={`Payroll Breakdown (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`}
                 />
             </div>
         </div>

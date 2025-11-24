@@ -23,7 +23,7 @@ const AttendanceEmployeeView = () => {
 
     const { employee, records } = employeeHistory;
 
-    // --- 🧠 Two Brains Logic: Calculate Stats ---
+    // --- Calculate Stats ---
     const totalDays = records.length;
     const totalHours = records.reduce((sum, rec) => sum + (rec.totalHours || 0), 0);
     const avgHours = totalDays > 0 ? (totalHours / totalDays).toFixed(1) : 0;
@@ -55,10 +55,21 @@ const AttendanceEmployeeView = () => {
         },
         {
             accessorKey: "totalHours",
-            header: "Duration",
+            header: "Duration / Status",
             cell: ({ row }) => {
+                const record = row.original;
+                
+                // 1. Check Status first
+                if (record.status === "Leave") {
+                     return (
+                        <span className="inline-flex items-center rounded-md border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-700">
+                            On Leave
+                        </span>
+                     );
+                }
+
+                // 2. Normal Logic
                 const hours = row.getValue("totalHours");
-                // Visual Cue: Red if under 8 hours, Green if over 8
                 const colorClass = hours < 8 ? "text-orange-600" : "text-green-600";
                 return (
                     <div className={`font-bold ${colorClass}`}>

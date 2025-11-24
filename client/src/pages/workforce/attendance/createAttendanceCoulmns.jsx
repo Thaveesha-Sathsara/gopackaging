@@ -1,8 +1,15 @@
 import React from 'react';
-import { Controller } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
 import { Input } from "@/src/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 
-// A simple helper to parse HH:mm strings
+// --- Helpers ---
 const parseTime = (timeStr) => {
     if (!timeStr) return null;
     const [hours, minutes] = timeStr.split(':').map(Number);
@@ -11,95 +18,173 @@ const parseTime = (timeStr) => {
     return date;
 };
 
-// The auto-calculation magic!
 const calculateTotalHours = (startTime, endTime) => {
     const start = parseTime(startTime);
     const end = parseTime(endTime);
 
     if (!start || !end || end <= start) {
-        return 0; // Return 0 if invalid
+        return 0;
     }
-
     const diffMs = end - start;
     const diffMinutes = diffMs / 1000 / 60;
     const totalHours = diffMinutes / 60;
-    
     return parseFloat(totalHours.toFixed(2));
 };
 
-export const CreateAttendanceColumns = (watch, setValue) => [
+// --- 1. Status Cell Component ---
+const StatusCell = ({ control, index, setValue }) => {
+    return (
+        <Controller
+            control={control}
+            name={`records.${index}.status`}
+            render={({ field }) => (
+                <Select 
+                    onValueChange={(val) => {
+                        field.onChange(val);
+                        // Logic: If Leave is selected, clear and lock other fields
+                        if (val === "Leave") {
+                            setValue(`records.${index}.startTime`, "");
+                            setValue(`records.${index}.endTime`, "");
+                            setValue(`records.${index}.totalHours`, 0);
+                        }
+                    }} 
+                    value={field.value}
+                >
+                    <SelectTrigger className="w-[110px]">
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Present">Working</SelectItem>
+                        <SelectItem value="Leave">On Leave</SelectItem>
+                    </SelectContent>
+                </Select>
+            )}
+        />
+    );
+};
+
+// --- 2. Start Time Cell Component ---
+const StartTimeCell = ({ control, index }) => {
+    // ✅ Valid: Hook called inside a component
+    const status = useWatch({
+        control,
+        name: `records.${index}.status`,
+    });
+    const isLeave = status === "Leave";
+
+    return (
+        <Controller
+            control={control}
+            name={`records.${index}.startTime`}
+            render={({ field }) => (
+                <Input 
+                    {...field}
+                    type="time"
+                    disabled={isLeave}
+                    className={`w-32 transition-colors ${isLeave ? "bg-gray-100 opacity-50 cursor-not-allowed" : ""}`}
+                />
+            )}
+        />
+    );
+};
+
+// --- 3. End Time Cell Component ---
+const EndTimeCell = ({ control, index, setValue }) => {
+    // ✅ Valid: Hooks called inside a component
+    const status = useWatch({
+        control,
+        name: `records.${index}.status`,
+    });
+    const startTime = useWatch({
+        control,
+        name: `records.${index}.startTime`,
+    });
+    const isLeave = status === "Leave";
+
+    return (
+        <Controller
+            control={control}
+            name={`records.${index}.endTime`}
+            render={({ field }) => (
+                <Input
+                    {...field}
+                    type="time"
+                    disabled={isLeave}
+                    className={`w-32 transition-colors ${isLeave ? "bg-gray-100 opacity-50 cursor-not-allowed" : ""}`}
+                    onBlur={(e) => {
+                        field.onBlur(e);
+                        // Calc logic
+                        if (!isLeave && startTime && e.target.value) {
+                            const totalHours = calculateTotalHours(startTime, e.target.value);
+                            setValue(`records.${index}.totalHours`, totalHours);
+                        }
+                    }}
+                />
+            )}
+        />
+    );
+};
+
+// --- 4. Total Hours Cell Component ---
+const TotalHoursCell = ({ control, index }) => {
+    // ✅ Valid: Hooks called inside a component
+    const totalHours = useWatch({
+        control,
+        name: `records.${index}.totalHours`
+    });
+    const status = useWatch({
+        control,
+        name: `records.${index}.status`,
+    });
+
+    if (status === "Leave") {
+        // Replaced <Badge> with a simple Tailwind span
+        return (
+            <span className="inline-flex items-center rounded-md border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-700">
+                On Leave
+            </span>
+        );
+    }
+
+    return <span className="font-medium ml-2">{totalHours || 0}</span>;
+};
+
+// --- Main Columns Definition ---
+export const CreateAttendanceColumns = (control, setValue) => [
     {
         accessorKey: "employeeID",
-        header: "Employee ID",
+        header: "ID",
     },
     {
         accessorKey: "employeeName",
-        header: "Employee Name",
+        header: "Name",
     },
     {
-        accessorKey: "position",
-        header: "Position",
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => (
+            <StatusCell control={control} index={row.index} setValue={setValue} />
+        ),
     },
     {
         id: "startTime",
         header: "Start Time",
-        cell: ({ row }) => {
-            const index = row.index;
-            const fieldName = `records.${index}.startTime`;
-            
-            return (
-                <Controller
-                    name={fieldName}
-                    render={({ field }) => (
-                        <Input 
-                            {...field}
-                            type="time"
-                            className="w-32"
-                        />
-                    )}
-                />
-            );
-        },
+        cell: ({ row }) => (
+            <StartTimeCell control={control} index={row.index} />
+        ),
     },
     {
         id: "endTime",
         header: "End Time",
-        cell: ({ row }) => {
-            const index = row.index;
-            const fieldName = `records.${index}.endTime`;
-
-            return (
-                <Controller
-                    name={fieldName}
-                    render={({ field }) => (
-                        <Input
-                            {...field}
-                            type="time"
-                            className="w-32"
-                            onBlur={(e) => {
-                                field.onBlur(e); // Important
-                                const startTime = watch(`records.${index}.startTime`);
-                                const endTime = e.target.value;
-                                const totalHours = calculateTotalHours(startTime, endTime);
-                                // Set the value in the hook-form state
-                                setValue(`records.${index}.totalHours`, totalHours);
-                            }}
-                        />
-                    )}
-                />
-            );
-        },
+        cell: ({ row }) => (
+            <EndTimeCell control={control} index={row.index} setValue={setValue} />
+        ),
     },
     {
         id: "totalHours",
         header: "Total Hours",
-        cell: ({ row }) => {
-            const index = row.index;
-            // Watch the value from the form
-            const totalHours = watch(`records.${index}.totalHours`);
-            return (
-                <span className="font-medium">{totalHours}</span>
-            );
-        },
+        cell: ({ row }) => (
+            <TotalHoursCell control={control} index={row.index} />
+        ),
     },
 ];

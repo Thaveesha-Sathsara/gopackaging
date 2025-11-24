@@ -31,6 +31,7 @@ const getEmployeesById = async (req, res) => {
 const patchEmployeeContent = async (req, res) => {
     try {
         const { id } = req.params;
+        
         const updateData = req.body;
 
         const employeeToUpdate = await Employees.findByIdAndUpdate(id, updateData, {
@@ -61,9 +62,16 @@ const createEmployee = async (req, res) => {
             joiningDate,
             isActived = true,
             remarks,
+            // 👇 NEW FIELDS MUST BE ADDED HERE
+            allowanceMeal,
+            allowanceMedical,
+            allowanceAttendance,
+            rateOT,
+            rateDoubleOT,
+            etfRate,
+            avatar // Don't forget the image!
         } = req.body;
 
-        // FIXED: Added logic to create and save the new employee
         const newEmployee = new Employees({
             employeeID,
             employeeName,
@@ -76,6 +84,14 @@ const createEmployee = async (req, res) => {
             joiningDate,
             isActived,
             remarks,
+            // 👇 AND MAPPED HERE
+            allowanceMeal,
+            allowanceMedical,
+            allowanceAttendance,
+            rateOT,
+            rateDoubleOT,
+            etfRate,
+            avatar
         });
 
         await newEmployee.save();

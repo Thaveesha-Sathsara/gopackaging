@@ -6,7 +6,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/src/components/ui/fomr";
+} from "@/src/components/ui/form";
 import {
   Popover,
   PopoverContent,

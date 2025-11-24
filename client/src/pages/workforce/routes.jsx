@@ -8,6 +8,7 @@ import ViewEmployee from "./employee/viewEmployee.jsx";
 import CreateDailyAttendance from "./attendance/createAttendance.jsx";
 import PayrollEmployeeView from "./payroll/payrollEmployeeView.jsx";
 import AttendanceEmployeeView from "./attendance/attendanceEmployeeView.jsx";
+import HolidayPage from "./holiday/holidayPage.jsx";
 
 
 export const workforceRoutes = [
@@ -83,4 +84,12 @@ export const workforceRoutes = [
             </ProtectedRoute>
         )
     },
+    {
+        path: "/calendar",
+        element: (
+            <ProtectedRoute>
+                <HolidayPage />
+            </ProtectedRoute>
+        )
+    }
 ]

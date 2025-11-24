@@ -3,7 +3,6 @@ const Schema = mongoose.Schema;
 
 const attendanceSchema = new Schema(
     {
-        // Link to the 'Employee' collection
         employee: {
             type: Schema.Types.ObjectId,
             ref: "Employee",
@@ -13,7 +12,6 @@ const attendanceSchema = new Schema(
             type: Date,
             required: true,
         },
-        // We store times as simple strings for easy input (e.g., "09:00")
         startTime: {
             type: String,
             default: "",
@@ -22,26 +20,34 @@ const attendanceSchema = new Schema(
             type: String,
             default: "",
         },
-        // Stored as a number (e.g., 8.5 for 8 and a half hours)
-        totalHours: {
-            type: Number,
-            default: 0,
+        status: {
+            type: String,
+            enum: ["Present", "Leave", "Absent"],
+            default: "Present",
         },
-        hourlyRate: { 
-            type: Number, 
-            default: 0 
-        },
-        dailyPay: { 
-            type: Number, 
-            default: 0 
-        },
+        
+        // --- HOURS BREAKDOWN ---
+        normalHours: { type: Number, default: 0 }, // Hours up to 5:00 PM
+        otHours: { type: Number, default: 0 },     // Hours after 5:00 PM (if left after 5:30)
+        doubleOtHours: { type: Number, default: 0 }, // Future proofing
+        totalHours: { type: Number, default: 0 },  // normal + ot + double
+
+        // --- RATES ---
+        hourlyRate: { type: Number, default: 0 },
+        otRate: { type: Number, default: 0 },      // 1.5x or custom
+        doubleOtRate: { type: Number, default: 0 },
+
+        // --- PAY BREAKDOWN ---
+        normalPay: { type: Number, default: 0 },
+        otPay: { type: Number, default: 0 },
+        doubleOtPay: { type: Number, default: 0 },
+        dailyPay: { type: Number, default: 0 },    // Sum of all pays
     },
     {
         timestamps: true,
     }
 );
 
-// To prevent an employee from having duplicate records for the same day
 attendanceSchema.index({ employee: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model("Attendance", attendanceSchema);
