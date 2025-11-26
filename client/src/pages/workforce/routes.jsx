@@ -9,6 +9,7 @@ import CreateDailyAttendance from "./attendance/createAttendance.jsx";
 import PayrollEmployeeView from "./payroll/payrollEmployeeView.jsx";
 import AttendanceEmployeeView from "./attendance/attendanceEmployeeView.jsx";
 import HolidayPage from "./holiday/holidayPage.jsx";
+import MonthlyAdjustments from "./monthly-adjustment/monthlyAdjustment.jsx";
 
 
 export const workforceRoutes = [
@@ -65,6 +66,14 @@ export const workforceRoutes = [
         element: (
             <ProtectedRoute>
                 <AttendanceEmployeeView />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: "/workforce/monthly-adjustment",
+        element: (
+            <ProtectedRoute>
+                <MonthlyAdjustments />
             </ProtectedRoute>
         )
     },

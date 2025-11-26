@@ -179,6 +179,7 @@ const ViewEmployee = () => {
                         <DetailRow icon={Utensils} label="Meal" value={handleFormatCurrency(employee.allowanceMeal)} />
                         <DetailRow icon={HeartPulse} label="Medical" value={handleFormatCurrency(employee.allowanceMedical)} />
                         <DetailRow icon={CalendarCheck} label="Attn. Bonus" value={handleFormatCurrency(employee.allowanceAttendance)} />
+                        <DetailRow icon={DollarSign} label="Adv. Payment" value={handleFormatCurrency(employee.fixedAdvanceAmount)} />
                         
                         <div className="border-t border-gray-300 dark:border-gray-700"></div>
                         <DetailRow icon={Percent} label="ETF Rate" value={`${employee.etfRate}%`} />
@@ -200,7 +201,7 @@ const ViewEmployee = () => {
                         <div className="border-t border-gray-300 dark:border-gray-700"></div>
                         <DetailRow icon={Briefcase} label="Position" value={employee.position} />
                         <div className="border-t border-gray-300 dark:border-gray-700"></div>
-                        <DetailRow icon={CalendarDays} label="Joining Date" value={handleFormatDate(employee.joiningDate)} />
+                        <DetailRow icon={CalendarDays} label="Joined Date" value={handleFormatDate(employee.joiningDate)} />
                         <div className="border-t border-gray-300 dark:border-gray-700"></div>
                         <DetailRow 
                             icon={employee.isActived ? CheckCircle : XCircle} 

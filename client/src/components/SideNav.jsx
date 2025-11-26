@@ -69,6 +69,11 @@ const SideNav = () => {
                         url: "/workforce/attendance"
                     },
                     {
+                        title: "Allowances",
+                        icon: BookOpenCheck,
+                        url: "/workforce/monthly-adjustment"
+                    },
+                    {
                         title: "Payroll",
                         icon: FileLock2,
                         url: "/workforce/payroll"

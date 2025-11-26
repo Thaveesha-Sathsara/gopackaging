@@ -4,12 +4,16 @@ import { usePayroll } from '@/src/hooks/workforce/usePayroll';
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
 import DataTable from "@/src/components/DataTable";
 import { Button } from "@/src/components/ui/button";
-import { ArrowLeft, Printer, Coins } from "lucide-react";
+import { ArrowLeft, Printer, Coins, AlertOctagon } from "lucide-react";
+import Payslip from '@/src/components/Payslip';
+import { useReactToPrint } from 'react-to-print';
+import { useRef } from 'react';
 
 const PayrollEmployeeView = () => {
     const { id } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const printRef = useRef(null);
     
     const startDate = new Date(searchParams.get("from") || new Date());
     const endDate = new Date(searchParams.get("to") || new Date());
@@ -19,6 +23,13 @@ const PayrollEmployeeView = () => {
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(amount || 0);
     };
+
+    const handlePrint = useReactToPrint({
+        documentTitle: employeePayroll?.employee?.name 
+            ? `${employeePayroll.employee.name}-Payslip` 
+            : `Payslip`,
+        contentRef: printRef,
+    });
 
     const columns = [
         {
@@ -35,49 +46,27 @@ const PayrollEmployeeView = () => {
             }
         },
         { 
-            accessorKey: "times", 
-            header: "Time In/Out",
-            cell: ({ row }) => {
-                 if (row.original.status === "Leave") return "-";
-                 return <div className="text-xs">{row.original.startTime} - {row.original.endTime}</div>
-            }
-        },
-        // --- NEW COLUMNS FOR OT BREAKDOWN ---
-        { 
             accessorKey: "normalHours", 
             header: "Basic Hrs", 
-            cell: ({ row }) => <span className="text-gray-600">{row.original.normalHours}</span>
+            cell: ({ row }) => {
+                const val = row.original.normalHours;
+                return val > 0 ? <span className="text-gray-600">{val}</span> : <span className="text-gray-500 text-xs">-</span>;
+            }
         },
-        // {
-        //     accessorKey: "normalPay",
-        //     header: "Basic Pay",
-        //     cell: ({ row }) => {
-        //         const pay = row.original.normalPay;
-        //         return pay > 0 ? <span className="text-xs text-gray-700">{formatCurrency(pay)}</span> : "-";
-        //     }
-        // },
         { 
             accessorKey: "otHours",     
             header: "OT Hrs", 
             cell: ({ row }) => {
                 const ot = row.original.otHours;
-                return ot > 0 ? <span className="font-bold text-blue-600">{ot}</span> : <span className="text-gray-300">-</span>;
+                return ot > 0 ? <span className="font-bold text-blue-600">{ot}</span> : <span className="text-gray-500 text-xs">-</span>;
             }
         },
-        // { 
-        //     accessorKey: "otPay", 
-        //     header: "OT Pay", 
-        //     cell: ({ row }) => {
-        //         const pay = row.original.otPay;
-        //         return pay > 0 ? <span className="text-xs text-blue-600">{formatCurrency(pay)}</span> : "-";
-        //     }
-        // },
         {
             accessorKey: "doubleOtHours", 
             header: "2x OT Hrs", 
             cell: ({ row }) => {
-                const doubleOtHours = row.original.doubleOtHours;
-                return doubleOtHours > 0 ? <span className="font-bold text-blue-600">{doubleOtHours}</span> : <span className="text-gray-300">-</span>;
+                const doubleOt = row.original.doubleOtHours;
+                return doubleOt > 0 ? <span className="font-bold text-purple-600">{doubleOt}</span> : <span className="text-gray-500 text-xs">-</span>;
             }
         },
         { 
@@ -86,7 +75,7 @@ const PayrollEmployeeView = () => {
             cell: ({ row }) => <div className="font-bold text-right">{formatCurrency(row.getValue("dailyPay"))}</div>
         },
     ];
-
+    
     if (isLoadingEmployee) return <div className="p-10">Loading details...</div>;
     if (!employeePayroll) return <div className="p-10">No data found.</div>;
 
@@ -108,30 +97,57 @@ const PayrollEmployeeView = () => {
                         <p className="text-gray-500">{employee.id} - {employee.position}</p>
                     </div>
                 </div>
-                <Button onClick={() => window.print()}>
+
+                <Button onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4" /> Print Payslip
                 </Button>
+
             </div>
 
             {/* Financial Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-500">Work Pay</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{formatCurrency(totalWorkPay)}</div></CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <Card className="bg-gray-50 border-gray-200">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-500">Net Basic Pay</CardTitle></CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-gray-800">{formatCurrency(summary?.totalGrossBasicPay)}</div>
+                        
+                        {/* Show the calculation if there were deductions */}
+                        {/* {summary?.totalLateDeductions > 0 && (
+                            <div className="mt-1 text-xs text-gray-500">
+                                <span className="line-through mr-1">{formatCurrency(summary?.totalGrossBasicPay)}</span>
+                                <span className="text-red-500 font-medium">-{formatCurrency(summary?.totalLateDeductions)}</span>
+                            </div>
+                        )} */}
+                    </CardContent>
                 </Card>
-                
+
                 {/* Allowances Card */}
                 <Card className="bg-blue-50 border-blue-100">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                        <CardTitle className="text-sm font-medium text-blue-700">Total Allowances</CardTitle>
-                        <Coins className="h-4 w-4 text-blue-500"/>
-                    </CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-500">Allowances</CardTitle></CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-blue-700">{formatCurrency(summary?.totalAllowances)}</div>
-                        <div className="text-xs text-blue-600 mt-1">
-                            Meal: {summary?.allowanceBreakdown?.meal > 0 ? "Yes" : "No"} | 
-                            Med: {summary?.allowanceBreakdown?.medical > 0 ? "Yes" : "No"} | 
-                            Attn: {summary?.allowanceBreakdown?.attendance > 0 ? "Yes" : "No"}
+                        <div className="text-2xl font-bold text-blue-700">+{formatCurrency(summary?.totalAllowances)}</div>
+                        <div className="grid grid-cols-5 gap-1 text-xs text-blue-600 mt-1">
+                            <span>Meal: {summary?.allowanceBreakdown?.meal > 0 ? "Yes" : "No"}</span>
+                            <span>Med: {summary?.allowanceBreakdown?.medical > 0 ? "Yes" : "No"}</span>
+                            <span>Attn: {summary?.allowanceBreakdown?.attendance > 0 ? "Yes" : "No"}</span>
+                            <span>Adv: {summary?.advanceReceived > 0 ? "Yes" : "No"}</span>
+                            <span>Bonus: {summary?.specialBonus > 0 ? "Yes" : "No"}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Deductions Card */}
+                <Card className="bg-red-50 border-red-200">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-500">Deductions</CardTitle></CardHeader>   
+                    <CardContent>
+                        <div className="text-2xl font-bold text-red-700">
+                            -{formatCurrency(summary?.totalLateDeductions + summary?.advanceDeduction)}
+                        </div>
+                        <div className="text-xs text-red-600/80 mt-1">
+                            Late: {formatCurrency(summary?.totalLateDeductions)}
+                            {summary?.advanceDeduction > 0 && (
+                                <span className="block font-bold">Adv. Repay: {formatCurrency(summary?.advanceDeduction)}</span>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -155,6 +171,16 @@ const PayrollEmployeeView = () => {
                     title={`Payroll Breakdown (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`}
                 />
             </div>
+
+            <div style={{ display: "none" }}>
+                <div ref={printRef}>
+                    <Payslip 
+                        data={employeePayroll} 
+                        dateRange={{ start: startDate, end: endDate }} 
+                    />
+                </div>
+            </div>
+
         </div>
     );
 };

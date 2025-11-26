@@ -29,6 +29,7 @@ const formSchema = z.object({
     allowanceMeal: z.coerce.number().min(0),
     allowanceMedical: z.coerce.number().min(0),
     allowanceAttendance: z.coerce.number().min(0),
+    fixedAdvanceAmount: z.coerce.number().min(0),
     rateOT: z.coerce.number().min(0),
     rateDoubleOT: z.coerce.number().min(0),
     etfRate: z.coerce.number().min(0).max(100),
@@ -53,7 +54,7 @@ const CreateEmployee = () => {
             employeeID: "", employeeName: "", nic: "", dob: null,
             contactNumber: "", address: "", position: "",
             joiningDate: null, remarks: "", isActived: "Active",
-            salary: 0, allowanceMeal: 0, allowanceMedical: 0, allowanceAttendance: 0,
+            salary: 0, allowanceMeal: 0, allowanceMedical: 0, allowanceAttendance: 0, fixedAdvanceAmount: 0,
             rateOT: 0, rateDoubleOT: 0, etfRate: 3,
         },
     });
@@ -210,7 +211,11 @@ const CreateEmployee = () => {
                                         <FormInputField form={form} name="allowanceMeal" label="Meal" type="number" />
                                         <FormInputField form={form} name="allowanceMedical" label="Medical" type="number" />
                                     </div>
-                                    <FormInputField form={form} name="allowanceAttendance" label="Attendance Bonus" type="number" />
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <FormInputField form={form} name="allowanceAttendance" label="Attendance Bonus" type="number" />
+                                        <FormInputField form={form} name="fixedAdvanceAmount" label="Advance Payment" type="number" />
+                                    </div>
 
                                     <div className="border-t border-gray-100 dark:border-gray-800 my-2"></div>
                                     <FormInputField form={form} name="etfRate" label="ETF/EPF Rate (%)" type="number" />

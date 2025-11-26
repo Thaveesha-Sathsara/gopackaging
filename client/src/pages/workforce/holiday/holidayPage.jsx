@@ -39,16 +39,22 @@ const HolidayPage = () => {
     );
 
     const handleAddHoliday = (e) => {
-        e.preventDefault();
-        addHoliday({
-            date: date,
-            name: newHolidayName,
-            type: newHolidayType
-        }, () => {
-            setIsDialogOpen(false);
-            setNewHolidayName("");
-        });
-    };
+    e.preventDefault();
+
+    // ✅ Create a new date object to avoid mutating state
+    // Set it to Noon (12:00:00) local time to be safe against timezone shifts
+    const safeDate = new Date(date);
+    safeDate.setHours(12, 0, 0, 0);
+
+    addHoliday({
+        date: safeDate, 
+        name: newHolidayName,
+        type: newHolidayType
+    }, () => {
+        setIsDialogOpen(false);
+        setNewHolidayName("");
+    });
+};
 
     return (
         <div className="p-6 max-w-7xl mx-auto flex flex-col gap-6">

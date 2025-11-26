@@ -21,6 +21,7 @@ const employeeSchema = new mongoose.Schema(
         allowanceMeal: { type: Number, default: 0 },
         allowanceMedical: { type: Number, default: 0 },
         allowanceAttendance: { type: Number, default: 0 },
+        fixedAdvanceAmount: { type: Number, default: 0 },
         rateOT: { type: Number, default: 0 },
         rateDoubleOT: { type: Number, default: 0 },
         etfRate: { type: Number, default: 3 },

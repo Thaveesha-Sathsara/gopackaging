@@ -130,3 +130,37 @@ h1 {
   }
 
 }
+
+@media print {
+  /* Hide EVERYTHING in the body by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Un-hide the printable payslip and its children */
+  #printable-payslip, #printable-payslip * {
+    visibility: visible;
+  }
+
+  /* Position the payslip at the absolute top-left of the page */
+  #printable-payslip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: white !important; /* Force white background */
+    color: black !important; /* Force black text */
+  }
+
+  /* Hide scrollbars and standard browser headers if possible */
+  @page {
+    size: A4;
+    margin: 8mm;
+  }
+    body {
+    margin: 0;
+    padding: 0;
+  }
+}

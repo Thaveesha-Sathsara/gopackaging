@@ -37,6 +37,8 @@ const attendanceSchema = new Schema(
         otRate: { type: Number, default: 0 },      // 1.5x or custom
         doubleOtRate: { type: Number, default: 0 },
 
+        lateDeduction: { type: Number, default: 0 },
+
         // --- PAY BREAKDOWN ---
         normalPay: { type: Number, default: 0 },
         otPay: { type: Number, default: 0 },

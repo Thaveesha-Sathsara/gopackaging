@@ -1,6 +1,13 @@
 const Holiday = require("../../models/workforce/holiday.model");
 
-// Get all holidays (we will fetch all and let frontend filter for now, or you can filter by year)
+// Helper
+const normalizeDate = (dateString) => {
+    const date = new Date(dateString);
+    date.setUTCHours(0, 0, 0, 0);
+    return date;
+};
+
+// Get all holidays
 const getHolidays = async (req, res) => {
     try {
         const holidays = await Holiday.find().sort({ date: 1 });
@@ -15,19 +22,20 @@ const createHoliday = async (req, res) => {
     try {
         const { date, name, type } = req.body;
         
-        // Simple validation
         if (!date || !name) {
             return res.status(400).json({ message: "Date and Name are required" });
         }
 
-        // Check if exists
-        const existing = await Holiday.findOne({ date: new Date(date) });
+        // ✅ Normalize Date here too
+        const normalizedDate = normalizeDate(date);
+
+        const existing = await Holiday.findOne({ date: normalizedDate });
         if (existing) {
             return res.status(400).json({ message: "A holiday already exists on this date." });
         }
 
         const holiday = await Holiday.create({ 
-            date: new Date(date), 
+            date: normalizedDate, 
             name, 
             type: type || "Mercantile" 
         });

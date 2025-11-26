@@ -19,7 +19,7 @@ const Payroll = () => {
     };
 
     return (
-        <div className="py-6 h-full flex flex-col">
+        <div className="py-6 h-full flex flex-col bg-gray-50/50">
             <ScrollArea>
                 <div className="px-6 mt-3 max-w-screen-lg min-w-full">
                     <div className="flex justify-between items-center mb-4">
