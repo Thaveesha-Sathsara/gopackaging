@@ -10,6 +10,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Camera, Save, X } from "lucide-react"; // Added Icons
 import FormDatePicker from "@/src/components/FormDatePicker";
+import FormDatePickerYearFirst from "@/src/components/FormDatePickerYearFirst";
 import FormInputField from "@/src/components/FormInputField";
 import FormSelector from "@/src/components/FormSelector";
 import { compressImage } from "@/src/lib/imageHelper";
@@ -161,7 +162,7 @@ const CreateEmployee = () => {
                                     <FormInputField form={form} name="employeeID" label="Employee ID" readOnly />
                                     <FormInputField form={form} name="employeeName" label="Full Name" placeholder="Ex: John Doe" />
                                     <FormInputField form={form} name="nic" label="NIC Number" placeholder="National ID" />
-                                    <FormDatePicker form={form} name="dob" label="Date of Birth" fromYear={1960} />
+                                    <FormDatePickerYearFirst form={form} name="dob" label="Date of Birth" fromYear={1960} />
                                 </CardContent>
                             </Card>
                         </div>

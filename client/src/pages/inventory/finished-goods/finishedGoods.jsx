@@ -192,7 +192,7 @@ const FinishedGoods = () => {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {adjustType === "add" ? "Add Stock" : "Record Usage"} - {selectedItem?.name}
+                            {adjustType === "produce" ? "Add Stock" : "Record Usage"} - {selectedItem?.name}
                         </DialogTitle>
                         <DialogDescription>
                             Current Stock: {selectedItem?.currentStock} {selectedItem?.unit}
@@ -232,7 +232,7 @@ const FinishedGoods = () => {
                                     Updating...
                                 </>
                             ) : (
-                            adjustType === "add" ? "Add to Stock" : "Deduct from Stock"
+                            adjustType === "produce" ? "Add to Stock" : "Deduct from Stock"
                             )}
                         </Button>
                     </DialogFooter>

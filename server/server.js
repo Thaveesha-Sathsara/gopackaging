@@ -13,6 +13,7 @@ const payrollAdjustmentRoutes = require('./routes/payrollAdjustment.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const employeeReportRoutes = require('./routes/employeeReport.rotes');
 const inventoryReportRoutes = require('./routes/inventoryReport.routes');
+const emailRoutes = require('./routes/email.routes');
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/workforce/payroll/adjustments', payrollAdjustmentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports/employees', employeeReportRoutes);
 app.use('/api/reports/inventory', inventoryReportRoutes);
+app.use('/api/email', emailRoutes);
 
 app.use((err, req, res, next) => {
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;

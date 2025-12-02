@@ -1,6 +1,7 @@
 const RawMaterial = require("../../models/inventory/rawMaterial.model");
 const FinishedGood = require("../../models/inventory/finishedGood.model");
 const InventoryTransaction = require("../../models/inventory/inventoryTransaction.model");
+const checkAndSendLowStockAlert = require("../../utils/inventoryAlerts.utils"); 
 
 // --- RAW MATERIALS ---
 
@@ -82,6 +83,7 @@ const adjustRawMaterialStock = async (req, res) => {
         }
 
         await material.save();
+        await checkAndSendLowStockAlert(material, 'RawMaterial');
         res.status(200).json(material);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -186,6 +188,7 @@ const adjustFinishedGoodStock = async (req, res) => {
         }
 
         await product.save();
+        await checkAndSendLowStockAlert(product, 'FinishedGood');
         res.status(200).json(product);
     } catch (error) {
         res.status(500).json({ message: error.message });
