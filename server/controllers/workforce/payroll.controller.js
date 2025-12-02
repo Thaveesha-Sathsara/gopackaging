@@ -31,7 +31,7 @@ const getPayrollSummary = async (req, res) => {
                     totalBasicPay: { $sum: "$normalPay" },
                     totalOtPay: { $sum: "$otPay" },
                     totalDoubleOtPay: { $sum: "$doubleOtPay" },
-                    grossWorkPay: { $sum: "$dailyPay" },
+                    grossWorkPay: { $sum: "$dailyPay" }, // This is usually Basic + OT
                     totalLateDeductions: { $sum: "$lateDeduction" }
                 },
             },
@@ -64,10 +64,20 @@ const getPayrollSummary = async (req, res) => {
             const specialBonus = adj?.bonusAmount || 0;
             const advanceReceived = (adj?.isAdvanceTaken) ? (emp.fixedAdvanceAmount || 0) : 0;
 
+            // --- FIXED ETF LOGIC START ---
+            const etfRate = emp.etfRate || 0;
+            const isEtfApplied = adj?.isEtfApplied || false;
+            
+            // 1. Calculate the ETF amount based on Gross Work Pay
+            const etfAmount = isEtfApplied ? (record.grossWorkPay * (etfRate / 100)) : 0;
+            // --- FIXED ETF LOGIC END ---
+
             const totalAllowances = mealAllowance + medicalAllowance + attendanceAllowance + specialBonus + advanceReceived;
             
-            // Net Pay = Work Pay + Allowances
-            const finalTotalPay = record.grossWorkPay + totalAllowances;
+            // ✅ Net Pay Calculation:
+            // (Money You Earned) - (Money Deducted)
+            // (GrossWorkPay + Allowances) - (ETF Amount)
+            const finalTotalPay = (record.grossWorkPay + totalAllowances) - etfAmount;
 
             return {
                 employeeId: emp._id,
@@ -80,7 +90,8 @@ const getPayrollSummary = async (req, res) => {
                 basicPay: record.totalBasicPay,
                 otPay: record.totalOtPay,
                 allowances: totalAllowances,
-                totalPay: finalTotalPay,
+                etfAmount: Number(etfAmount.toFixed(2)), // Showing what was deducted
+                totalPay: Number(finalTotalPay.toFixed(2)), // The final amount in hand
             };
         });
 
@@ -98,7 +109,6 @@ const getEmployeePayrollDetails = async (req, res) => {
         const { id } = req.params;
         const { startDate, endDate } = req.query;
         
-        // Parse dates
         const start = new Date(startDate);
         const end = new Date(endDate);
         const currentMonth = getFirstOfMonth(start);
@@ -107,19 +117,16 @@ const getEmployeePayrollDetails = async (req, res) => {
         const employee = await Employee.findById(id);
         if (!employee) return res.status(404).json({ message: "Employee not found" });
 
-        // 1. Get Attendance
         const records = await Attendance.find({
             employee: id,
             date: { $gte: start, $lte: end }
         }).sort({ date: 1 });
 
-        // 2. Get Adjustments (Safely handle nulls)
         const currentAdj = await PayrollAdjustment.findOne({ employee: id, month: currentMonth });
         const prevAdj = await PayrollAdjustment.findOne({ employee: id, month: previousMonth });
 
-        // 3. Calculate Logic
+        // logic
         const daysPresent = records.filter(r => r.status === "Present").length;
-
         const normalHours = records.reduce((sum, r) => sum + (r.normalHours || 0), 0);
         const otHours = records.reduce((sum, r) => sum + (r.otHours || 0), 0);
         const doubleOtHours = records.reduce((sum, r) => sum + (r.doubleOtHours || 0), 0);
@@ -134,16 +141,30 @@ const getEmployeePayrollDetails = async (req, res) => {
         const totalLateDeductions = records.reduce((sum, r) => sum + (r.lateDeduction || 0), 0);
         const advanceDeduction = (prevAdj?.isAdvanceTaken) ? (employee.fixedAdvanceAmount || 0) : 0;
 
+        // Sum of all daily earning (Normal + OT + Double OT)
         const totalWorkPay = records.reduce((sum, rec) => sum + (rec.dailyPay || 0), 0);
         const otPay = records.reduce((sum, rec) => sum + (rec.otPay || 0), 0);
         const doubleOtPay = records.reduce((sum, rec) => sum + (rec.doubleOtPay || 0), 0);
+
+        // --- FIXED ETF LOGIC START ---
+        const etfRate = employee.etfRate || 0;
+        const isEtfApplied = currentAdj ? currentAdj.isEtfApplied : false;
+        
+        // Calculate ETF amount
+        const etfAmount = isEtfApplied ? (totalWorkPay * (etfRate / 100)) : 0;
+        // --- FIXED ETF LOGIC END ---
+
+        // Add ETF to total deductions
+        const totalDeductions = advanceDeduction + etfAmount;
+
         const totalActualBasicPay = records.reduce((sum, r) => sum + (r.normalPay || 0), 0);
         const totalGrossBasicPay = totalActualBasicPay + totalLateDeductions;
-
         const totalAllowances = mealAllowance + medicalAllowance + attendanceAllowance + specialBonus + advanceReceived;
         
-        // Formula: (Work Pay + Allowances + Advance In) - (Advance Out)
-        const netPay = (totalWorkPay + totalAllowances + advanceReceived) - advanceDeduction;
+        // Formula: (Work Pay + Allowances) - (Deductions)
+        // Deductions = Old Advance + ETF
+        // Note: advanceReceived is technically money IN, advanceDeduction is money OUT
+        const netPay = (totalWorkPay + totalAllowances) - totalDeductions;
 
         const formattedRecords = records.map(r => ({
             _id: r._id,
@@ -184,6 +205,7 @@ const getEmployeePayrollDetails = async (req, res) => {
                 advanceReceived,
                 totalLateDeductions,
                 advanceDeduction,
+                etfAmount,
                 otPay,
                 doubleOtPay,
                 totalGrossBasicPay,
@@ -193,15 +215,15 @@ const getEmployeePayrollDetails = async (req, res) => {
                     medical: medicalAllowance,
                     attendance: attendanceAllowance,
                     advance: advanceReceived,
-                    bonus: specialBonus
+                    bonus: specialBonus,
                 },
-                netPay
+                netPay: Number(netPay.toFixed(2))
             },
             records: formattedRecords
         });
 
     } catch (error) {
-        console.error(error); // Log the specific error to the server console
+        console.error(error); 
         res.status(500).json({ message: error.message });
     }
 };

@@ -80,10 +80,6 @@ const PayrollEmployeeView = () => {
     if (!employeePayroll) return <div className="p-10">No data found.</div>;
 
     const { employee, records, summary } = employeePayroll;
-    
-    // Recalculate totals from records
-    const totalWorkPay = records.reduce((sum, rec) => sum + (rec.dailyPay || 0), 0);
-    const finalPayout = totalWorkPay + (summary?.totalAllowances || 0);
 
     return (
         <div className="p-6 flex flex-col gap-6">
@@ -125,13 +121,23 @@ const PayrollEmployeeView = () => {
                 <Card className="bg-blue-50 border-blue-100">
                     <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-500">Allowances</CardTitle></CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-blue-700">+{formatCurrency(summary?.totalAllowances)}</div>
+                        <div className="text-2xl font-bold text-blue-700">{formatCurrency(summary?.totalAllowances)}</div>
                         <div className="grid grid-cols-5 gap-1 text-xs text-blue-600 mt-1">
-                            <span>Meal: {summary?.allowanceBreakdown?.meal > 0 ? "Yes" : "No"}</span>
-                            <span>Med: {summary?.allowanceBreakdown?.medical > 0 ? "Yes" : "No"}</span>
-                            <span>Attn: {summary?.allowanceBreakdown?.attendance > 0 ? "Yes" : "No"}</span>
-                            <span>Adv: {summary?.advanceReceived > 0 ? "Yes" : "No"}</span>
-                            <span>Bonus: {summary?.specialBonus > 0 ? "Yes" : "No"}</span>
+                            {summary?.allowanceBreakdown.meal > 0 && (
+                                <span className="block">Meal: {summary?.allowanceBreakdown?.meal > 0 ? "Yes" : "No"}</span>
+                            )}
+                            {summary?.allowanceBreakdown.medical > 0 && (
+                                <span className="block">Med: {summary?.allowanceBreakdown?.medical > 0 ? "Yes" : "No"}</span>
+                            )}
+                            {summary?.allowanceBreakdown.attendance > 0 && (
+                                <span className="block">Att: {summary?.allowanceBreakdown?.attendance > 0 ? "Yes" : "No"}</span>
+                            )}
+                            {summary?.allowanceBreakdown.advance > 0 && (
+                                <span className="block">Adv: {summary?.allowanceBreakdown?.advance > 0 ? "Yes" : "No"}</span>
+                            )}
+                            {summary?.allowanceBreakdown.bonus > 0 && (
+                                <span className="block">Bonus: {summary?.allowanceBreakdown?.bonus > 0 ? "Yes" : "No"}</span>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -141,12 +147,17 @@ const PayrollEmployeeView = () => {
                     <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-gray-500">Deductions</CardTitle></CardHeader>   
                     <CardContent>
                         <div className="text-2xl font-bold text-red-700">
-                            -{formatCurrency(summary?.totalLateDeductions + summary?.advanceDeduction)}
+                            {formatCurrency(summary?.totalLateDeductions + summary?.advanceDeduction + summary?.etfAmount)}
                         </div>
                         <div className="text-xs text-red-600/80 mt-1">
-                            Late: {formatCurrency(summary?.totalLateDeductions)}
+                            {summary?.totalLateDeductions > 0 && (
+                                <span className="block">Late: {formatCurrency(summary?.totalLateDeductions)}</span>
+                            )}
+                            {summary?.etfAmount > 0 && (
+                                <span className="block">ETF Deduction: {formatCurrency(summary?.etfAmount)}</span>
+                            )}
                             {summary?.advanceDeduction > 0 && (
-                                <span className="block font-bold">Adv. Repay: {formatCurrency(summary?.advanceDeduction)}</span>
+                                <span className="block">Adv. Repay: {formatCurrency(summary?.advanceDeduction)}</span>
                             )}
                         </div>
                     </CardContent>
@@ -159,7 +170,7 @@ const PayrollEmployeeView = () => {
 
                 <Card className="bg-green-50 border-green-200">
                     <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-green-700">Final Net Pay</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold text-green-700">{formatCurrency(finalPayout)}</div></CardContent>
+                    <CardContent><div className="text-2xl font-bold text-green-700">{formatCurrency(summary.netPay)}</div></CardContent>
                 </Card>
             </div>
 

@@ -11,6 +11,7 @@ const payrollAdjustmentSchema = new mongoose.Schema(
         isMealClaimed: { type: Boolean, default: false },
         isMedicalClaimed: { type: Boolean, default: false },
         isAdvanceTaken: { type: Boolean, default: false },
+        isEtfApplied: { type: Boolean, default: false },
 
         // Variable Data
         bonusAmount: { type: Number, default: 0 },

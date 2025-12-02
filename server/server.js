@@ -10,6 +10,9 @@ const cookieParser = require('cookie-parser');
 const attendanceRoutes = require('./routes/attendance.routes');
 const holidayRoutes = require('./routes/holiday.routes');
 const payrollAdjustmentRoutes = require('./routes/payrollAdjustment.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
+const employeeReportRoutes = require('./routes/employeeReport.rotes');
+const inventoryReportRoutes = require('./routes/inventoryReport.routes');
 
 dotenv.config();
 
@@ -30,6 +33,9 @@ app.use('/api/workforce/payroll', payrollRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/workforce/holidays', holidayRoutes);
 app.use('/api/workforce/payroll/adjustments', payrollAdjustmentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reports/employees', employeeReportRoutes);
+app.use('/api/reports/inventory', inventoryReportRoutes);
 
 app.use((err, req, res, next) => {
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;

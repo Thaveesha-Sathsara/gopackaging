@@ -20,10 +20,7 @@ const Attendance = () => {
     
 
     const handleDateRangeChange = (range) => {
-        if (!range?.from || !range?.to) {
-            return;
-        }
-        setDateRange(range);
+        if (range?.from) setDateRange(range);
     };
 
     const actionButtons = (

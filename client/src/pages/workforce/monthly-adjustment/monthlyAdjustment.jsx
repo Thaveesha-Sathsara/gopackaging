@@ -45,6 +45,14 @@ const MonthlyAdjustments = () => {
     const { control, handleSubmit, reset } = methods;
     const { fields } = useFieldArray({ control, name: "records" });
 
+    const resetMonth = async () => {
+    if(!window.confirm("Are you sure? This will DELETE all adjustments for the selected month to test the ETF carry-over.")) return;
+    
+    // We cheat and send empty records to overwrite, or better, we can't easily delete via bulkWrite without a new API.
+    // Instead, let's just use the editing mode to set everything to TRUE manually once, save it, and then see if it sticks for Next Month.
+    alert("Please use your Database (Compass) to delete the 'payrolladjustments' for this specific month. The code logic cannot overwrite an existing 'False' value because it thinks you deliberately turned it off.");
+}
+
     useEffect(() => {
         if (adjustments) reset({ records: adjustments });
     }, [adjustments, reset]);
@@ -120,6 +128,26 @@ const MonthlyAdjustments = () => {
             )
         },
         {
+            id: "etfRate",
+            header: ({ column }) => <DataTableColumnHeader column={column} title="ETF" />,
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <Controller control={control} name={`records.${row.index}.isEtfApplied`}
+                        render={({ field }) => (
+                            <Checkbox 
+                                checked={field.value} 
+                                onCheckedChange={field.onChange} 
+                                disabled={!isEditing}
+                            />
+                        )}
+                    />
+                    <span className="text-xs text-gray-500 font-mono">
+                        ({row.original.etfRate?.toLocaleString()} %)
+                    </span>
+                </div>
+            )
+        },
+        {
             id: "bonus",
             header: ({ column }) => <DataTableColumnHeader column={column} title="Bonus" />,
             cell: ({ row }) => (
@@ -171,6 +199,10 @@ const MonthlyAdjustments = () => {
                             disabled={isEditing}
                         />
                     </div>
+
+                    <Button variant="outline" onClick={resetMonth} className="gap-2">
+                        Reset Month Data
+                    </Button>
 
                     <div className="h-8 w-px bg-gray-300 mx-2"></div>
 
