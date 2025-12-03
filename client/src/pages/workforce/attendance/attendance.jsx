@@ -5,7 +5,7 @@ import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { DateRangePicker } from "@/src/components/ui/date-range-picker"; 
 import { useAttendance } from "@/src/hooks/workforce/useAttendance";
 import { CreateAttendanceColumns } from "./createAttendanceCoulmns";
-import { Columns } from "./AttendanceSummaryColumns";
+import { Columns } from "./attendanceSummaryColumns";
 
 const Attendance = () => {
     const [dateRange, setDateRange] = useState({
