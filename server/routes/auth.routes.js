@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const asyncHandler = require('express-async-handler');
+const expressAsyncHandler = require('express-async-handler');
 const User = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 const { protect } = require('../middleware/auth.middleware');
@@ -13,7 +13,7 @@ const generateToken = (id) => {
 
 // @desc    Auth user (Login)
 // @route   POST /api/auth/login
-router.post('/login', asyncHandler(async (req, res) => {
+router.post('/login', expressAsyncHandler(async (req, res) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username });
 
