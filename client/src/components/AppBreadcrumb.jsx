@@ -76,7 +76,7 @@ const AppBreadcrumb = () => {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to="/">Go Packaging</Link>
+            <Link to="/">G.O Packaging</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {pathSegments.length > 0 && <BreadcrumbSeparator />}

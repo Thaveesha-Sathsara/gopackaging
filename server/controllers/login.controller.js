@@ -1,7 +1,7 @@
 const User = require('../models/user.model');
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
-const sendEmail = require('../config/email.config'); 
+const { sendEmailSecurity } = require('../config/email.config'); 
 
 // Helper: Generate JWT
 const generateToken = (id) => {
@@ -135,10 +135,7 @@ const sendOTP = asyncHandler(async (req, res) => {
     const htmlMessage = getOtpEmailTemplate(otp);
     const targetEmail = process.env.ADMIN_EMAIL; 
     
-    // Note: Ensure your sendEmail function supports an HTML parameter, 
-    // or pass this as the 'text' param if it auto-detects HTML.
-    // Assuming sendEmail(to, subject, htmlContent)
-    await sendEmail(targetEmail, "Action Required: Your Verification Code", htmlMessage);
+    await sendEmailSecurity(targetEmail, "Action Required: Your Verification Code", htmlMessage);
 
     res.json({ message: "OTP Sent to Admin Email" });
 });

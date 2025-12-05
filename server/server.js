@@ -15,6 +15,7 @@ const employeeReportRoutes = require('./routes/employeeReport.rotes');
 const inventoryReportRoutes = require('./routes/inventoryReport.routes');
 const emailRoutes = require('./routes/email.routes');
 const reportsRoutes = require('./routes/reports.routes');
+const runDailyReport = require('./utils/dailyReports');
 
 dotenv.config();
 
@@ -26,6 +27,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+// CRON Jobs
+runDailyReport();
+console.log("Daily Report Job Scheduler started.");
 
 // API Routes
 app.use('/api/auth', authRoutes);

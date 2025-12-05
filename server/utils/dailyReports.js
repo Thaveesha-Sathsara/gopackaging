@@ -1,5 +1,5 @@
 const cron = require("node-cron");
-const sendEmail = require("../config/email.config");
+const { sendEmailAlerts } = require("../config/email.config");
 const Employee = require("../models/workforce/employee.model");
 const Attendance = require("../models/workforce/attendance.model");
 const InventoryTransaction = require("../models/inventory/inventoryTransaction.model");
@@ -11,8 +11,8 @@ const formatCurrency = (amount) => {
 
 const runDailyReport = () => {
     // Schedule: 8:00 AM every day ('0 8 * * *')
-    cron.schedule("0 8 * * *", async () => {
-        console.log("⏰ Running Daily Report Job...");
+    cron.schedule("0 3 * * *", async () => {
+        console.log("Running Daily Report Job...");
 
         try {
             // 1. Define "Yesterday" (The full 24 hours of the previous day)
@@ -73,7 +73,7 @@ const runDailyReport = () => {
                     <div style="padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
                         
                         <!-- WORKFORCE SECTION -->
-                        <h3 style="border-bottom: 2px solid #3b82f6; padding-bottom: 5px; color: #1e40af;">👥 Workforce Summary</h3>
+                        <h3 style="border-bottom: 2px solid #3b82f6; padding-bottom: 5px; color: #1e40af;">Workforce Summary</h3>
                         <table style="width: 100%; margin-bottom: 20px;">
                             <tr>
                                 <td style="padding: 8px; background: #eff6ff;"><strong>Present:</strong> ${att.present}</td>
@@ -92,42 +92,46 @@ const runDailyReport = () => {
                         </table>
 
                         <!-- INVENTORY SECTION -->
-                        <h3 style="border-bottom: 2px solid #f59e0b; padding-bottom: 5px; color: #92400e;">📦 Inventory Movement</h3>
+                        <h3 style="border-bottom: 2px solid #f59e0b; padding-bottom: 5px; color: #92400e;">Inventory Movement</h3>
                         <p style="margin-bottom: 15px;">Yesterday's transaction summary:</p>
                         <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
                             <tr>
-                                <td style="padding: 8px; border: 1px solid #e2e8f0;">📥 <strong>Added/Produced:</strong></td>
+                                <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Added/Produced:</strong></td>
                                 <td style="padding: 8px; border: 1px solid #e2e8f0; color: green;">${addedCount} Transactions</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; border: 1px solid #e2e8f0;">📤 <strong>Used/Shipped:</strong></td>
+                                <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Used/Shipped:</strong></td>
                                 <td style="padding: 8px; border: 1px solid #e2e8f0; color: orange;">${usedCount} Transactions</td>
                             </tr>
                         </table>
 
                         ${lowStockItems.length > 0 ? `
                             <div style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 10px; border-radius: 6px;">
-                                <strong style="color: #b91c1c;">⚠️ Critical Low Stock Alerts (${lowStockItems.length})</strong>
+                                <strong style="color: #b91c1c;">Critical Low Stock Alerts (${lowStockItems.length})</strong>
                                 <ul style="margin: 10px 0 0 20px; padding: 0; color: #b91c1c; font-size: 13px;">
                                     ${lowStockItems.map(i => `<li>${i.name}: ${i.currentStock} ${i.unit} (Min: ${i.minimumLevel})</li>`).join('')}
                                 </ul>
                             </div>
-                        ` : '<p style="color: green; font-size: 13px;">✅ All raw material stock levels are healthy.</p>'}
+                        ` : '<p style="color: green; font-size: 13px;">All raw material stock levels are healthy.</p>'}
                         
                         <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #94a3b8;">
-                            <p>This is an automated message from your LCS Workforce System.</p>
+                            <p>This is an automated message from your LCS Enterprises G.O Packaging Workforce System.</p>
                         </div>
                     </div>
                 </div>
             `;
 
             // 6. Send Email
-            await sendEmail(process.env.ADMIN_EMAIL, `Daily Report: ${dateString}`, htmlContent);
+            await sendEmailAlerts(process.env.ADMIN_EMAIL, `Daily Report: ${dateString}`, htmlContent);
 
         } catch (error) {
-            console.error("❌ Daily Report Job Failed:", error);
+            console.error("Daily Report Job Failed:", error);
         }
-    });
+    },
+        {
+            timezone: "Asia/Colombo"
+        }
+    );
 };
 
 module.exports = runDailyReport;

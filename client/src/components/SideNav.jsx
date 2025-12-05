@@ -141,7 +141,7 @@ const SideNav = () => {
                                 />
                             </div>
                             <div className="flex flex-col gap-0.5 leading-none">
-                                <span className="text-sm font-semibold">Go Packaging</span>
+                                <span className="text-sm font-semibold">G.O Packaging</span>
                             </div>
                         </div>
                     </SidebarMenuItem>

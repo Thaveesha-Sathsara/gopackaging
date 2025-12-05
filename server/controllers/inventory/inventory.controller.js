@@ -83,7 +83,7 @@ const adjustRawMaterialStock = async (req, res) => {
         }
 
         await material.save();
-        await checkAndSendLowStockAlert(material, 'RawMaterial');
+        checkAndSendLowStockAlert(material, 'RawMaterial').catch(err => console.error("Alert Error:", err));
         res.status(200).json(material);
     } catch (error) {
         res.status(500).json({ message: error.message });

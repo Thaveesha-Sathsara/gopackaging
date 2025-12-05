@@ -1,4 +1,4 @@
-const sendEmail = require("../config/email.config");
+const { sendEmailAlerts } = require("../config/email.config");
 
 const checkAndSendLowStockAlert = async (item, type) => {
     // Logic: Only send if stock is NOW below minimum (and wasn't already handled, theoretically)
@@ -42,11 +42,14 @@ const checkAndSendLowStockAlert = async (item, type) => {
                 <p style="margin-top: 20px; font-size: 12px; color: #64748b;">
                     Please arrange for procurement or production immediately.
                 </p>
+                <p style="margin-top: 10px; font-size: 12px; color: #64748b;">
+                    This is an automated message from your LCS Enterprises - G.O Packaging Workforce System.
+                </p>
             </div>
         `;
 
         // Send to the boss/manager
-        await sendEmail(process.env.ADMIN_EMAIL, subject, html);
+        await sendEmailAlerts(process.env.ADMIN_EMAIL, subject, html);
     }
 };
 
