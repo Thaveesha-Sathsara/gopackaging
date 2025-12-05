@@ -9,7 +9,7 @@ const checkAndSendLowStockAlert = async (item, type) => {
     const minLevel = item.minimumLevel || 10; 
 
     if (item.currentStock <= minLevel) {
-        const subject = `⚠️ LOW STOCK ALERT: ${item.name}`;
+        const subject = `LOW STOCK ALERT: ${item.name}`;
         
         const html = `
             <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
