@@ -56,6 +56,15 @@ const FinishedGoods = () => {
         });
     };
 
+    const formatDateForInput = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
     const handleAdjust = () => {
         if (!selectedItem || !qty) return;
         
@@ -206,7 +215,7 @@ const FinishedGoods = () => {
                             <div className="col-span-3">
                                 <input
                                     type="date"
-                                    value={adjustDate.toISOString().split('T')[0]}
+                                    value={formatDateForInput(adjustDate)}
                                     onChange={(e) => setAdjustDate(new Date(e.target.value))}
                                 />
                             </div>
