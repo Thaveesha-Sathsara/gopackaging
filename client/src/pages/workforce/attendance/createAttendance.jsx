@@ -51,7 +51,9 @@ const CreateDailyAttendance = () => {
                 }
             });
 
-            const mergedRecords = employees.map(emp => {
+            const activeEmployeesOnly = employees.filter(emp => emp.isActived === true);
+
+            const mergedRecords = activeEmployeesOnly.map(emp => {
                 const existingRecord = recordsMap.get(emp._id.toString());
 
                 return {

@@ -11,7 +11,10 @@ const getEmployeeReport = async (req, res) => {
         const { id } = req.params;
 
         // 1. Get Employee Basic Details
-        const employee = await Employee.findById(id).select("employeeID employeeName position joiningDate contactNumber address salary rateOT");
+        const employee = await Employee.findOne({
+            _id: id,
+            isActived: true
+        }).select("employeeID employeeName position joiningDate contactNumber address salary rateOT");
         if (!employee) return res.status(404).json({ message: "Employee not found" });
 
         // 2. Define 6-Month Range

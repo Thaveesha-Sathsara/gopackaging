@@ -111,6 +111,10 @@ const getAttendanceSummary = async (req, res) => {
             },
             { $unwind: "$employeeDetails" },
             {
+                $match: 
+                { "employeeDetails.isActived": true }
+            },
+            {
                 $project: {
                     _id: 0,
                     employeeId: "$_id",
@@ -136,7 +140,7 @@ const getDailyAttendance = async (req, res) => {
         const { date } = req.query;
         if (!date) return res.status(400).json({ message: "Date required" });
         const searchDate = normalizeDate(date);
-        const records = await Attendance.find({ date: searchDate }).populate("employee", "employeeID employeeName");
+        const records = await Attendance.find({ date: searchDate }).populate({ path: "employee", select: "employeeID employeeName isActivted", match: { isActivted: true } });
         res.status(200).json(records);
     } catch (error) {
         res.status(500).json({ message: error.message });

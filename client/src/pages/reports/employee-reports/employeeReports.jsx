@@ -21,6 +21,8 @@ import { useEmployeeReports } from "@/src/hooks/report/useEmployeeReport";
 const EmployeeReports = () => {
     // 1. Get List of Employees for Dropdown
     const { employees } = useEmployee(); 
+
+    const activeEmployees = employees?.filter(emp => emp.isActived === true) || [];
     
     const [selectedId, setSelectedId] = useState("");
 
@@ -44,7 +46,7 @@ const EmployeeReports = () => {
                             <SelectValue placeholder="Select Employee..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {employees?.map(emp => (
+                            {activeEmployees?.map(emp => (
                                 <SelectItem key={emp._id} value={emp._id}>{emp.employeeName} ({emp.employeeID})</SelectItem>
                             ))}
                         </SelectContent>

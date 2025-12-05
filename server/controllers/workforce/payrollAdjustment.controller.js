@@ -2,12 +2,10 @@ const PayrollAdjustment = require("../../models/workforce/payrollAdjustment.mode
 const Employee = require("../../models/workforce/employee.model");
 
 // ✅ Helper: Get Start and End of a specific day in UTC
-// This ensures we find the record regardless of slight time shifts (e.g. 5:30 vs 00:00)
 const getDateRange = (dateString) => {
-    // Input: "2023-11" or "2023-11-01"
     const date = new Date(dateString); 
     const year = date.getFullYear();
-    const month = date.getMonth(); // 0-indexed
+    const month = date.getMonth(); 
 
     const startOfDay = new Date(Date.UTC(year, month, 1, 0, 0, 0));
     const endOfDay = new Date(Date.UTC(year, month, 1, 23, 59, 59));
@@ -15,70 +13,54 @@ const getDateRange = (dateString) => {
     return { start: startOfDay, end: endOfDay };
 };
 
-// ✅ Helper: Get Start/End for the PREVIOUS month
-const getPrevDateRange = (dateString) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = date.getMonth(); 
-
-    // Subtract 1 from month (JS handles year rollover automatically)
-    const startOfDay = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
-    const endOfDay = new Date(Date.UTC(year, month - 1, 1, 23, 59, 59));
-
-    return { start: startOfDay, end: endOfDay };
-};
-
 const getMonthlyAdjustments = async (req, res) => {
     try {
-        const { date } = req.query; // "2023-12-01"
+        const { date } = req.query; 
         if (!date) return res.status(400).json({ message: "Date required" });
 
-        // 1. Calculate Ranges
+        // 1. Calculate Range for CURRENT month only
         const currentRange = getDateRange(date);
-        const prevRange = getPrevDateRange(date);
 
-        console.log("--- DEBUG ETF LOGIC ---");
-        console.log("Looking for Current Month between:", currentRange.start.toISOString(), "and", currentRange.end.toISOString());
-        console.log("Looking for Previous Month between:", prevRange.start.toISOString(), "and", prevRange.end.toISOString());
-
-        // 2. Fetch Employees
+        // 2. Fetch Active Employees
         const employees = await Employee.find({ isActived: true })
             .select("employeeID employeeName allowanceMeal allowanceMedical fixedAdvanceAmount etfRate");
 
-        // 3. Fetch Adjustments using Range Query ($gte and $lte)
-        // This fixes the issue if DB has 5:30 and we search for 00:00
+        // 3. Fetch Adjustments for THIS month (to see if user already saved something)
         const currentAdjustments = await PayrollAdjustment.find({ 
             month: { $gte: currentRange.start, $lte: currentRange.end } 
         });
 
-        const prevAdjustments = await PayrollAdjustment.find({ 
-            month: { $gte: prevRange.start, $lte: prevRange.end } 
+        // 4. ✅ NEW LOGIC: Find employees who EVER had ETF enabled before this month
+        // We look for any record where date is LESS than current month AND etf is true
+        const employeesWithHistoryOfEtf = await PayrollAdjustment.distinct("employee", {
+            month: { $lt: currentRange.start }, // Strictly before current month
+            isEtfApplied: true
         });
 
-        console.log(`Found ${currentAdjustments.length} records for Current Month.`);
-        console.log(`Found ${prevAdjustments.length} records for Previous Month.`);
+        // Convert ObjectId array to string array for easy comparison
+        const historicalEtfSet = new Set(employeesWithHistoryOfEtf.map(id => id.toString()));
 
-        // 4. Map Data
+        // 5. Map Data
         const currentAdjMap = {};
         currentAdjustments.forEach(adj => { currentAdjMap[adj.employee.toString()] = adj; });
 
-        const prevAdjMap = {};
-        prevAdjustments.forEach(adj => { prevAdjMap[adj.employee.toString()] = adj; });
-
         const result = employees.map(emp => {
-            const currentAdj = currentAdjMap[emp._id.toString()];
-            const prevAdj = prevAdjMap[emp._id.toString()];
-
+            const empIdStr = emp._id.toString();
+            const currentAdj = currentAdjMap[empIdStr];
+            
+            // ✅ DETERMINE ETF STATUS
             let etfStatus = false;
 
             if (currentAdj) {
-                // Case A: Record exists for this month. Use it.
-                // NOTE: If you previously saved "False", this will stay "False".
+                // Case A: User has explicitly saved this month. Trust the saved value.
+                // (This allows you to manually turn it off if absolutely needed, though rare)
                 etfStatus = currentAdj.isEtfApplied;
-            } else if (prevAdj) {
-                // Case B: New month. Check previous month.
-                etfStatus = prevAdj.isEtfApplied;
-                if (etfStatus) console.log(`> Carrying over ETF: TRUE for ${emp.employeeName}`);
+            } else {
+                // Case B: No record for this month yet. 
+                // Check if they are in the "Historical Set" (Have they ever had ETF?)
+                if (historicalEtfSet.has(empIdStr)) {
+                    etfStatus = true;
+                }
             }
 
             return {
@@ -94,7 +76,7 @@ const getMonthlyAdjustments = async (req, res) => {
                 isMedicalClaimed: currentAdj ? currentAdj.isMedicalClaimed : false,
                 isAdvanceTaken: currentAdj ? currentAdj.isAdvanceTaken : false,
                 
-                // ✅ Result
+                // ✅ Final Logic Applied Here
                 isEtfApplied: etfStatus, 
 
                 bonusAmount: currentAdj ? currentAdj.bonusAmount : 0,
@@ -111,10 +93,10 @@ const getMonthlyAdjustments = async (req, res) => {
 };
 
 const saveMonthlyAdjustments = async (req, res) => {
+    // ... (Your existing save logic remains exactly the same) ...
     try {
         const { date, records } = req.body;
         
-        // Always save as UTC Midnight to keep DB clean
         const saveDate = new Date(date);
         const targetMonth = new Date(Date.UTC(saveDate.getFullYear(), saveDate.getMonth(), 1, 0, 0, 0));
 

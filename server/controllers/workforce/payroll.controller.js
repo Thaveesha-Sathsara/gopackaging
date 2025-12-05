@@ -38,7 +38,10 @@ const getPayrollSummary = async (req, res) => {
         ]);
 
         const employeeIds = payrollData.map(p => p._id);
-        const employees = await Employee.find({ _id: { $in: employeeIds } });
+        const employees = await Employee.find({
+            _id: { $in: employeeIds },
+            isActived: true
+        });
         
         const empMap = {};
         employees.forEach(emp => { empMap[emp._id.toString()] = emp; });
@@ -54,8 +57,8 @@ const getPayrollSummary = async (req, res) => {
 
         const finalPayroll = payrollData.map(record => {
             const emp = empMap[record._id.toString()];
-            const adj = adjMap[record._id.toString()];
             if (!emp) return null;
+            const adj = adjMap[record._id.toString()];
 
             // Calculate Allowances
             const mealAllowance = (adj?.isMealClaimed) ? (emp.allowanceMeal || 0) : 0;
