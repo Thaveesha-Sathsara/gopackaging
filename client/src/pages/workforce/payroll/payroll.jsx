@@ -19,25 +19,29 @@ const Payroll = () => {
     };
 
     return (
-        <div className="py-6 h-full flex flex-col bg-gray-50/50">
+        <div className="p-6 h-full flex flex-col gap-6 bg-gray-50/50">
+            <div className="flex justify-between items-end border-b pb-4">
+                <div>
+                    <h1 className="text 2x1 font-bold text-gray-900">Payroll Management</h1>
+                    <p className="text-sm text-gray-500 mt-1">Manage payroll records.</p>
+                </div>
+
+                <div className="flex items-center gap-3">
+
+                    <DateRangePicker 
+                        date={dateRange}
+                        onDateChange={handleDateRangeChange}
+                    /> 
+
+                </div>
+            </div>
             <ScrollArea>
-                <div className="px-6 mt-3 max-w-screen-lg min-w-full">
-                    <div className="flex justify-between items-center mb-4">
-                        <h1 className="text-2xl font-semibold">Payroll Management</h1>
-                        <DateRangePicker 
-                            date={dateRange}
-                            onDateChange={handleDateRangeChange}
-                        /> 
-                    </div>
-                    
                     <DataTable
-                        columns={PayrollColumns(dateRange)} // Pass dates to columns for the 'View' link
+                        columns={PayrollColumns(dateRange)}
                         data={payrollSummary || []}
-                        title="Payroll Summary"
                         emptyMessage="No payroll records found for this period."
                         isLoading={isLoadingSummary}
                     />
-                </div>
             </ScrollArea>
         </div>
     );

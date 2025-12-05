@@ -21,7 +21,7 @@ export const useEmployee = (id) => {
         stableTime: 1000 * 60 * 5,
         enabled: !id,
         retry: 3,
-        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), //expotential backoff
+        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
 
     //fetch a single employee by mongoID

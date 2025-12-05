@@ -99,11 +99,6 @@ const SideNav = () => {
                 ],
             },
             {
-                title: "Production",
-                icon: FireExtinguisher,
-                url: "/production"
-            },
-            {
                 title: "Reports",
                 icon: File,
                 items: [
@@ -116,11 +111,6 @@ const SideNav = () => {
                         title: "Inventory Reports",
                         icon: FileLock2,
                         url: "reports/inventory-reports"
-                    },
-                    {
-                        title: "Production Reports",
-                        icon: NotebookPen,
-                        url: "/reports/production-reports"
                     },
                 ],
             },

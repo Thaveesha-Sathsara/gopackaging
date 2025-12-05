@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 const ROUTE_PREFIX = "/api/workforce/attendance";
 
 // Helper to format date as "YYYY-MM-DD" using local time
-// This fixes the timezone issue where dates shift to the previous day
 const formatDate = (date) => {
     if (!date) return null;
     const d = new Date(date);
@@ -18,17 +17,16 @@ const formatDate = (date) => {
 export const useAttendance = (startDate, endDate, date, employeeId) => {
     const queryClient = useQueryClient();
 
-    // Convert dates to strings immediately. 
-    // This stabilizes the query keys and fixes the backend requests.
+    // ✅ FIX: Defensive coding. If endDate is missing (single click), use startDate.
     const startStr = formatDate(startDate);
-    const endStr = formatDate(endDate);
+    const endStr = formatDate(endDate || startDate);
     const dateStr = formatDate(date);
 
     /**
      * Query to fetch the attendance summary for the dashboard
      */
     const { data: attendanceSummary, isLoading: isLoadingSummary, refetch: refetchSummary } = useQuery({
-        // ✅ Query Key uses strings (stable), not Date objects
+        // Query key now relies on the safe strings
         queryKey: ["attendanceSummary", startStr, endStr],
         queryFn: async () => {
             if (!startStr || !endStr) return [];
@@ -45,8 +43,8 @@ export const useAttendance = (startDate, endDate, date, employeeId) => {
                 throw error;
             }
         },
-        // Only run if both strings are valid
-        enabled: !!startStr && !!endStr,
+        // Enable query even if only startStr is present (since endStr defaults to it)
+        enabled: !!startStr,
         retry: 1,
     });
 
@@ -54,7 +52,6 @@ export const useAttendance = (startDate, endDate, date, employeeId) => {
      * Query to fetch daily records for the "Create" page
      */
     const { data: dailyRecords, isLoading: isLoadingDaily } = useQuery({
-        // ✅ Query Key uses string
         queryKey: ["dailyAttendance", dateStr],
         queryFn: async () => {
             if (!dateStr) return [];
@@ -68,10 +65,8 @@ export const useAttendance = (startDate, endDate, date, employeeId) => {
                 throw error;
             }
         },
-        // Only run if the date string is valid
         enabled: !!dateStr, 
     });
-
 
     const { data: employeeHistory, isLoading: isLoadingHistory } = useQuery({
         queryKey: ["employeeAttendanceHistory", employeeId, startStr, endStr],
@@ -87,9 +82,8 @@ export const useAttendance = (startDate, endDate, date, employeeId) => {
                 throw error;
             }
         },
-        enabled: !!employeeId && !!startStr && !!endStr,
+        enabled: !!employeeId && !!startStr,
     });
-
 
     /**
      * Mutation to create/update the daily attendance records
@@ -97,10 +91,9 @@ export const useAttendance = (startDate, endDate, date, employeeId) => {
     const { mutate: createDailyAttendance, isPending: isSaving } = useMutation({
         mutationFn: async (data) => {
             try {
-                // Ensure the payload uses the formatted date string too
                 const payload = {
                     ...data,
-                    date: formatDate(data.date) // Ensure this is YYYY-MM-DD
+                    date: formatDate(data.date) 
                 };
                 const response = await axiosInstance.post(`${ROUTE_PREFIX}/daily`, payload);
                 return response.data;
@@ -111,7 +104,6 @@ export const useAttendance = (startDate, endDate, date, employeeId) => {
         },
         onSuccess: () => {
             createAlert("Attendance Saved!");
-            // Invalidate both queries so the UI updates immediately
             queryClient.invalidateQueries(["attendanceSummary"]);
             queryClient.invalidateQueries(["dailyAttendance"]); 
         },

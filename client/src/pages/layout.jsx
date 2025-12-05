@@ -1,6 +1,5 @@
 import AppBreadcrumb from "@/src/components/AppBreadcrumb";
 import AppSidebar from "@/src/components/SideNav";
-import { ModeToggle } from "@/src/components/ModeToggle";
 import { Separator } from "@/src/components/ui/separator";
 import {
   SidebarInset,
@@ -22,9 +21,6 @@ const RootLayout = () => {
                 <SidebarTrigger className="-ml-1 dark:text-white" />
                 <Separator orientation="vertical" className="h-4 mr-2" />
                 <AppBreadcrumb />
-              </div>
-              <div className="flex gap-4 items-right">
-                <ModeToggle />
               </div>
             </header>
             <main className="flex-1 overflow-auto bg-slate-200 dark:bg-[#12131d]">

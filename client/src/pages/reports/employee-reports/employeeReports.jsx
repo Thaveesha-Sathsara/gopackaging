@@ -49,9 +49,9 @@ const EmployeeReports = () => {
                             ))}
                         </SelectContent>
                     </Select>
-                    <Button variant="outline" disabled={!reportData}>
+                    {/* <Button variant="outline" disabled={!reportData}>
                         <Download className="h-4 w-4 mr-2" /> Export PDF
-                    </Button>
+                    </Button> */}
                 </div>
             </div>
 

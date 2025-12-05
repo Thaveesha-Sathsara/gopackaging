@@ -16,10 +16,8 @@ import { Badge } from "@/src/components/ui/badge";
 const HolidayPage = () => {
     const { holidays, isLoading, addHoliday, removeHoliday } = useHolidays();
     
-    // 1. STATE: Selected specific day (for adding holidays)
     const [date, setDate] = useState(new Date()); 
     
-    // 2. STATE: Currently visible month (for the side list & calendar view)
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,7 +30,6 @@ const HolidayPage = () => {
         return holidays.some(h => new Date(h.date).toDateString() === day.toDateString());
     };
 
-    // FIX: Filter based on 'currentMonth' (the view), NOT 'date' (the selection)
     const selectedMonthHolidays = holidays.filter(h => 
         new Date(h.date).getMonth() === currentMonth.getMonth() &&
         new Date(h.date).getFullYear() === currentMonth.getFullYear()
@@ -40,9 +37,6 @@ const HolidayPage = () => {
 
     const handleAddHoliday = (e) => {
     e.preventDefault();
-
-    // ✅ Create a new date object to avoid mutating state
-    // Set it to Noon (12:00:00) local time to be safe against timezone shifts
     const safeDate = new Date(date);
     safeDate.setHours(12, 0, 0, 0);
 
@@ -57,7 +51,7 @@ const HolidayPage = () => {
 };
 
     return (
-        <div className="p-6 max-w-7xl mx-auto flex flex-col gap-6">
+        <div className="p-6 max-w-7xl mx-auto flex flex-col gap-6 bg-gray-50/50">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
                 <div>
@@ -67,7 +61,7 @@ const HolidayPage = () => {
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button size="sm" className="gap-2 shadow-sm bg-[#0f172a] hover:bg-gray-700 text-white">
+                        <Button>
                             <Plus className="h-4 w-4" /> Add Holiday
                         </Button>
                     </DialogTrigger>
@@ -112,7 +106,7 @@ const HolidayPage = () => {
 
                             <div className="flex justify-end gap-2 pt-4">
                                 <Button type="button" variant="outline" size="sm" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                                <Button type="submit" size="sm" className="bg-gray-600 hover:bg-gray-700">Save Holiday</Button>
+                                <Button  size="sm">Save Holiday</Button>
                             </div>
                         </form>
                     </DialogContent>
@@ -145,11 +139,8 @@ const HolidayPage = () => {
                                 month: "w-full h-full flex flex-col",
                                 caption: "flex justify-center pt-2 relative items-center mb-2", 
                                 caption_label: "text-lg font-bold text-gray-800",
-                                
-                                // FIX: ARROW POSITIONING & Z-INDEX
-                                // Added z-20 to bring it to front, and adjusted spacing
                                 nav: "space-x-2 flex items-center absolute right-4 top-3 z-20", 
-                                nav_button: "h-8 w-8 bg-white shadow-sm border border-gray-200 p-0 hover:opacity-100 hover:bg-gray-100 transition rounded-md flex items-center justify-center",
+                                nav_button: "h-8 w-8 bg-white shadow-sm border border-gray-200 p-0 hover:opacity-100 hover:bg-blue-100 transition rounded-md flex items-center justify-center",
                                 nav_button_previous: "",
                                 nav_button_next: "",
 
@@ -159,8 +150,8 @@ const HolidayPage = () => {
                                 row: "flex w-full mt-1 justify-between flex-1",
                                 cell: "h-full w-full text-center text-sm p-0 relative [&:has([aria-selected])]:bg-gray-50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                                 day: "h-16 w-full p-0 font-medium aria-selected:opacity-100 hover:bg-gray-50 hover:text-gray-600 rounded-md transition-all text-sm text-gray-600",
-                                day_selected: "bg-gray-600 text-white hover:bg-gray-600 hover:text-white focus:bg-gray-600 focus:text-white shadow-md transform scale-105",
-                                day_today: "bg-gray-100 text-gray-900 border border-gray-300",
+                                day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white shadow-md transform scale-105",
+                                day_today: "bg-blue-100 text-gray-900 border border-gray-300",
                                 day_outside: "text-gray-300 opacity-50",
                                 day_disabled: "text-muted-foreground opacity-50",
                                 day_hidden: "invisible",
@@ -170,7 +161,7 @@ const HolidayPage = () => {
                             }}
                             modifiersStyles={{
                                 holiday: { 
-                                    color: "#d75858ff", 
+                                    color: "#ff0a0aff", 
                                     fontWeight: "bold",
                                 }
                             }}

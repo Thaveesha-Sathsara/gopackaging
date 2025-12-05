@@ -113,7 +113,7 @@ const DataTable = ({
     <>
       <div className={`flex items-center ${subHeading ? "pb-3" : "pb-6"}`}>
         {title && (
-          <h1 className="text-2xl font-medium text-blue-700 dark:text-gray-200 mr-4">
+          <h1 className="text-2xl font-bold text-gray-900">
             {title}
           </h1>
         )}
@@ -121,7 +121,7 @@ const DataTable = ({
           placeholder="Search..."
           value={globalFilter}
           onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm dark:text-gray-200 m-1"
+          className="max-w-sm dark:text-gray-200 m-1 bg-white"
         />
         <DataTableViewOptions table={table} />
         {actionButtons && (

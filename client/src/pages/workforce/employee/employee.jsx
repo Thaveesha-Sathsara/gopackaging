@@ -33,19 +33,24 @@ const Employee = () => {
     );
 
     return (
-        <div className="py-6 h-full flex flex-col">
-            <ScrollArea>
-                <div className="px-6 mt-3 max-w-screen-lg min-w-full">
-                    <DataTable
-                        columns={Columns(handleDelete)}
-                        data={employees || []}
-                        actionButtons={actionButtons}
-                        title="Employees"
-                        initialPageSize={20}
-                        emptyMessage="No results."
-                        isLoading={isLoading}
-                    />
+        <div className="p-6 flex flex-col h-full gap-6 bg-gray-50/50">
+            <div className="flex justify-between items-end border-b pb-4">
+                <div>
+                    <h1 className="text 2x1 font-bold text-gray-900">Employee Management</h1>
+                    <p className="text-sm text-gray-500 mt-1">Manage employee records.</p>
                 </div>
+                    
+                <div>{actionButtons}</div>
+
+            </div>
+            <ScrollArea>
+                <DataTable
+                    columns={Columns(handleDelete)}
+                    data={employees || []}
+                    initialPageSize={20}
+                    emptyMessage="No results."
+                    isLoading={isLoading}
+                />
             </ScrollArea>
         </div>
     );

@@ -111,38 +111,32 @@ const CreateDailyAttendance = () => {
 
         return (
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="py-6 h-full flex flex-col gap-4">
-                    <div className="px-6 flex flex-col md:flex-row gap-4 items-center">
-                        <h1 className="text-2xl font-semibold">Mark Daily Attendance</h1>
-                        <div className="flex gap-4 md:ml-auto">
+                <form onSubmit={handleSubmit(onSubmit)} className="p-6 h-full flex flex-col gap-6 bg-gray-50/50">
+                    <div className="flex justify-between items-end border-b pb-4">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">Mark Daily Attendance</h1>
+                            <p className="text-sm text-gray-500 mt-1">Record attendance for employees.</p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
                             <FormDatePicker
                                 form={methods}
                                 name="date"
                                 label="Attendance Date"
                             />
-                            <Input
-                                placeholder="Search Employee..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full md:w-64"
-                            />
                         </div>
                     </div>
 
-                    <ScrollArea className="flex-1">
-                        <div className="px-6 mt-3 max-w-screen-lg min-w-full">
-                            <DataTable
-                                // ✅ PASS 'control' SO CELLS CAN WATCH FOR CHANGES
-                                columns={CreateAttendanceColumns(control, setValue)}
-                                data={filteredFields}
-                                title="Employees"
-                                emptyMessage="No employees found."
-                                isLoading={isLoading}
-                            />
-                        </div>
+                    <ScrollArea>
+                        <DataTable
+                            columns={CreateAttendanceColumns(control, setValue)}
+                            data={filteredFields}
+                            emptyMessage="No employees found."
+                            isLoading={isLoading}
+                        />
                     </ScrollArea>
 
-                    <div className="px-6 py-4 border-t bg-background sticky bottom-0">
+                    <div className="px-6 py-4 border-t sticky bottom-0">
                         <div className="flex justify-end gap-4">
                             <Link to="/workforce/attendance">
                                 <Button variant="destructive" type="button">Cancel</Button>

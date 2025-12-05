@@ -1,41 +1,32 @@
-import React, { useRef } from 'react'; // <-- Added useRef
+import React, { useRef } from 'react';
 import PropTypes from "prop-types";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
-// --- START: Self-Contained UI Component Definitions (to fix imports) ---
-
-// Simplified cn utility
+// --- UI Components (Simplified for this file) ---
 const cn = (...classes) => classes.filter(Boolean).join(' ');
 
-// Dummy Popover/Trigger/Content (No longer strictly needed but kept for style consistency)
-const Popover = ({ children }) => <div className="relative">{children}</div>;
-const PopoverTrigger = ({ children, asChild }) => asChild ? children : <div>{children}</div>;
-const PopoverContent = ({ children, className }) => (
-    <div className={cn("absolute z-50 bg-white border rounded-lg shadow-lg p-2", className)}>{children}</div>
-);
-
-// Simplified shadcn/ui components (FormItem, FormLabel, FormControl, FormMessage)
-// FIX: Corrected FormItem definition to remove duplicate 'className' attribute
-const FormItem = ({ children, className }) => <div className={cn("space-y-1", className)}>{children}</div>; 
-const FormLabel = ({ children, className }) => <label className={cn("block text-sm font-medium", className)}>{children}</label>;
-const FormControl = ({ children }) => <div>{children}</div>;
-const FormMessage = () => <p className="text-sm text-red-500 mt-1"></p>;
-const FormField = ({ render }) => render({}); // Dummy for useForm/Controller structure
-
-// Button component placeholder (Modified to reflect a standard UI button)
-const Button = ({ children, className, variant, ...props }) => (
-    <button className={cn("flex items-center justify-center h-10 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition", className)} {...props}>
+const Button = ({ children, className, ...props }) => (
+    <button 
+        type="button" 
+        className={cn(
+            "flex items-center w-full px-3 py-2 text-sm border rounded-md shadow-sm transition-colors",
+            "bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-800",
+            "hover:bg-gray-50 dark:hover:bg-zinc-800 focus:ring-2 focus:ring-blue-500",
+            className
+        )} 
+        {...props}
+    >
         {children}
     </button>
 );
 
-// Skeleton component placeholder
-const Skeleton = ({ className }) => <div className={cn("animate-pulse bg-gray-200 rounded-md", className)} />;
+// We assume these are imported from your UI library in the real app, 
+// but for this file to work standalone as requested:
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import { Skeleton } from "@/src/components/ui/skeleton";
 
-// --- END: Self-Contained UI Component Definitions ---
 
-// 💡 NEW COMPONENT NAME: FormDatePickerYearFirst
 const FormDatePickerYearFirst = ({
     form,
     name,
@@ -45,89 +36,92 @@ const FormDatePickerYearFirst = ({
     fromYear,
     toYear,
 }) => {
-    // Ref for the hidden native date input element
     const dateInputRef = useRef(null);
 
-    // Helper to format Date object into YYYY-MM-DD string for native input
-    const getFormattedDate = (value) => {
-        if (!value) return "";
-        try {
-            // Ensure we use a UTC date representation for reliable input value binding
-            const date = new Date(value);
-            return date.toISOString().split('T')[0];
-        } catch {
-            return "";
-        }
+    // ✅ FIX 1: Convert Date Object -> YYYY-MM-DD String (Local Time)
+    // This ensures that Nov 27th stays Nov 27th, regardless of timezone.
+    const getInputValue = (date) => {
+        if (!date) return "";
+        const d = new Date(date);
+        // Manual formatting prevents UTC shift
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
-    
-    // Helper to get the display string (e.g., "Oct 12, 1985")
-    const getDisplayString = (value) => {
-        if (!value) return "Pick a date";
-        try {
-            // Ensure the value is a valid Date object before formatting
-            const date = new Date(value);
-            if (isNaN(date)) return "Invalid Date";
-            return format(date, "PPP");
-        } catch {
-            return "Invalid Date";
-        }
-    };
-    
-    // Determine the max selectable year (defaults to current year)
-    const currentYear = new Date().getFullYear();
-    const finalToYear = toYear || currentYear;
 
+    // Helper for Display Text (e.g., "Nov 27, 2025")
+    const getDisplayString = (date) => {
+        if (!date) return "Pick a date";
+        // Check if valid
+        const d = new Date(date);
+        return isNaN(d.getTime()) ? "Pick a date" : format(d, "PPP");
+    };
+
+    // ✅ FIX 2: Handle Date Selection (String -> Date Object)
+    // We set the time to NOON (12:00) to safely avoid timezone shifts when saving.
+    const handleDateChange = (e, onChange) => {
+        const value = e.target.value; // "2025-11-27"
+        if (!value) {
+            onChange(null);
+            return;
+        }
+        const [y, m, d] = value.split('-').map(Number);
+        // Create date at 12:00 PM Local Time
+        const safeDate = new Date(y, m - 1, d, 12, 0, 0);
+        onChange(safeDate);
+    };
+
+    // Calculate Min/Max for the HTML Input
+    const currentYear = new Date().getFullYear();
+    const minDate = fromYear ? `${fromYear}-01-01` : undefined;
+    const maxDate = toYear ? `${toYear}-12-31` : `${currentYear + 50}-12-31`;
 
     return (
-        <FormField // Dummy FormField wrapper
-            render={({ field = { value: null, onChange: () => {} } }) => ( // Mock field object
+        <FormField
+            control={form.control}
+            name={name}
+            render={({ field }) => (
                 <FormItem className="flex flex-col w-full mt-2">
-                    <FormLabel className="text-gray-800 dark:text-gray-50 mb-0.5">
-                        {label}{" "}
-                        {required && (
-                            <span className="text-red-600 dark:text-red-500">*</span>
-                        )}
+                    <FormLabel className="text-gray-800 dark:text-gray-200 mb-1 font-medium">
+                        {label} {required && <span className="text-red-600">*</span>}
                     </FormLabel>
+                    
                     <FormControl>
                         {isLoading ? (
                             <Skeleton className="h-10 w-full" />
                         ) : (
                             <div className="relative">
-                                {/* 1. VISIBLE BUTTON: Displays the formatted date and acts as the click target */}
+                                {/* 1. Visible Button Trigger */}
                                 <Button
-                                    type="button"
-                                    // Use showPicker() to open the native calendar dialog on click
-                                    onClick={() => dateInputRef.current && dateInputRef.current.showPicker()}
-                                    className={cn(
-                                        // Use full button width/height but adjust padding and text alignment
-                                        "w-full px-3 h-10 justify-start", 
-                                        "text-sm",
-                                        !field.value ? "text-gray-500 dark:text-gray-400" : "text-gray-900 dark:text-gray-100",
-                                        "border border-gray-300 rounded-md shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200",
-                                        "focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50"
-                                    )}
-                                >
-                                    <span>{getDisplayString(field.value)}</span>
-                                    <CalendarIcon className="h-4 w-4 opacity-50 ml-auto" />
-                                </Button>
-                                
-                                {/* 2. HIDDEN NATIVE INPUT: The functional element for picking the date */}
-                                <input
-                                    type="date"
-                                    ref={dateInputRef} // Attach ref to trigger the picker
-                                    // Completely hide the input element off-screen but keep it functional
-                                    className="absolute left-0 top-0 w-0 h-0 p-0 m-0 border-0 overflow-hidden" 
-                                    tabIndex={-1} // Prevent keyboard focus
-
-                                    min={fromYear ? `${fromYear}-01-01` : undefined}
-                                    max={toYear ? `${toYear}-12-31` : `${finalToYear}-12-31`}
-                                    value={getFormattedDate(field.value)}
-                                    onChange={(e) => {
-                                        // When the native input changes, convert the YYYY-MM-DD string back to a Date object 
-                                        // before passing it to React Hook Form's field.onChange.
-                                        const dateValue = e.target.value ? new Date(e.target.value) : null;
-                                        field.onChange(dateValue);
+                                    onClick={() => {
+                                        // Try showPicker() (Modern), fallback to focus()
+                                        try {
+                                            dateInputRef.current?.showPicker();
+                                        } catch (err) {
+                                            dateInputRef.current?.focus(); 
+                                        }
                                     }}
+                                    className={!field.value ? "text-muted-foreground" : ""}
+                                >
+                                    {getDisplayString(field.value)}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+
+                                {/* 2. Hidden Native Input (The Real Logic) */}
+                                <input
+                                    ref={dateInputRef}
+                                    type="date"
+                                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer pointer-events-none"
+                                    // Positioning it absolutely over the button but invisible
+                                    // allows 'showPicker' to position the calendar correctly relative to it.
+                                    style={{ visibility: 'hidden', position: 'absolute' }} 
+                                    
+                                    value={getInputValue(field.value)}
+                                    onChange={(e) => handleDateChange(e, field.onChange)}
+                                    min={minDate}
+                                    max={maxDate}
+                                    tabIndex={-1}
                                 />
                             </div>
                         )}

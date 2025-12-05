@@ -13,7 +13,7 @@ const getDashboardStats = async (req, res) => {
         const totalEmployees = await Employee.countDocuments({ isActived: true });
         
         // Attendance Today
-        const presentToday = await Attendance.countDocuments({ date: today, status: "Present" });
+        const presentToday = await Attendance.countDocuments({ date: today, status: "Present", startTime: { $ne: null, $ne: "" } });
         const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
 
         // Inventory Alerts

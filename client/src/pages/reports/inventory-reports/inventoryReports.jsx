@@ -11,7 +11,7 @@ const InventoryReports = () => {
     const [data, setData] = useState(null);
 
     useEffect(() => {
-        fetch('/api/reports/inventory-reports') // Replace with your actual route
+        fetch('/api/reports/inventory')
             .then(res => res.json())
             .then(setData)
             .catch(console.error);

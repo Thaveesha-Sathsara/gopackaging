@@ -45,14 +45,6 @@ const MonthlyAdjustments = () => {
     const { control, handleSubmit, reset } = methods;
     const { fields } = useFieldArray({ control, name: "records" });
 
-    const resetMonth = async () => {
-    if(!window.confirm("Are you sure? This will DELETE all adjustments for the selected month to test the ETF carry-over.")) return;
-    
-    // We cheat and send empty records to overwrite, or better, we can't easily delete via bulkWrite without a new API.
-    // Instead, let's just use the editing mode to set everything to TRUE manually once, save it, and then see if it sticks for Next Month.
-    alert("Please use your Database (Compass) to delete the 'payrolladjustments' for this specific month. The code logic cannot overwrite an existing 'False' value because it thinks you deliberately turned it off.");
-}
-
     useEffect(() => {
         if (adjustments) reset({ records: adjustments });
     }, [adjustments, reset]);
@@ -180,17 +172,14 @@ const MonthlyAdjustments = () => {
 
     return (
         <div className="p-6 flex flex-col h-full gap-6 bg-gray-50/50">
-            {/* Header Section */}
             <div className="flex justify-between items-end border-b pb-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Payroll Adjustments</h1>
+                    <h1 className="text-2x2 font-bold text-gray-900">Payroll Adjustments</h1>
                     <p className="text-sm text-gray-500 mt-1">Manage monthly variable allowances and deductions.</p>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                    {/* Month Picker */}
                     <div className="flex flex-col gap-1">
-                        <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Select Month</span>
                         <Input 
                             type="month" 
                             value={selectedMonth} 
@@ -200,13 +189,8 @@ const MonthlyAdjustments = () => {
                         />
                     </div>
 
-                    <Button variant="outline" onClick={resetMonth} className="gap-2">
-                        Reset Month Data
-                    </Button>
-
                     <div className="h-8 w-px bg-gray-300 mx-2"></div>
 
-                    {/* ✅ Action Buttons Logic */}
                     {!isEditing ? (
                         <Button onClick={() => setIsEditing(true)} className="gap-2">
                             <Pencil className="h-4 w-4" /> Edit Adjustments

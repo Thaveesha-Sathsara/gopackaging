@@ -13,6 +13,7 @@ import FormDatePicker from "@/src/components/FormDatePicker";
 import FormInputField from "@/src/components/FormInputField";
 import FormSelector from "@/src/components/FormSelector";
 import { compressImage } from "@/src/lib/imageHelper";
+import FormDatePickerYearFirst from "@/src/components/FormDatePickerYearFirst";
 
 const formSchema = z.object({
     employeeID: z.string().min(1, "Required"),
@@ -167,7 +168,7 @@ const EditEmployee = () => {
                                     <FormInputField form={form} name="employeeID" label="Employee ID" readOnly />
                                     <FormInputField form={form} name="employeeName" label="Full Name" />
                                     <FormInputField form={form} name="nic" label="NIC Number" />
-                                    <FormDatePicker form={form} name="dob" label="Date of Birth" fromYear={1960} />
+                                    <FormDatePickerYearFirst form={form} name="dob" label="Date of Birth" fromYear={1960} />
                                 </CardContent>
                             </Card>
                         </div>

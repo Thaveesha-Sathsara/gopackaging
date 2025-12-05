@@ -3,7 +3,7 @@ const Employee = require("../../models/workforce/employee.model");
 const Holiday = require("../../models/workforce/holiday.model");
 const mongoose = require("mongoose");
 
-// ... (normalizeDate and calculateTimeLogic remain the same) ...
+// Helper: Normalize date to start of day (00:00:00 UTC)
 const normalizeDate = (dateString) => {
     const date = new Date(dateString);
     date.setUTCHours(0, 0, 0, 0);
@@ -24,18 +24,14 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
     const actualEnd = toDecimal(endTimeStr);
 
     let effectiveStart;
-    let lostHours = 0; // ✅ Track lost time
+    let lostHours = 0; 
 
     // 1. APPLY START TIME ROUNDING
     if (actualStart <= 8.0) {
         effectiveStart = 8.0; 
     } else {
         effectiveStart = Math.ceil(actualStart);
-        // ✅ Calculate the penalty gap (e.g., 8:15 -> 9:00. Lost = 0.75)
-        // But we only care about the time *after* 8:00
         if (!isHolidayOrSunday) {
-             // If they came at 8:15 (8.25), effective is 9.0. 
-             // They worked 0.75 hours (8.25 to 9.00) that we are NOT paying for.
              lostHours = effectiveStart - actualStart;
         }
     }
@@ -49,7 +45,7 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
             normalHours: 0,
             otHours: 0,
             doubleOtHours: parseFloat(duration.toFixed(2)),
-            lostHours: 0 // Usually no late penalties on Double OT days (optional)
+            lostHours: 0 
         };
     } else {
         // --- NORMAL DAY LOGIC ---
@@ -74,22 +70,28 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
             normalHours: parseFloat(normalHours.toFixed(2)), 
             otHours: parseFloat(otHours.toFixed(2)),
             doubleOtHours: 0,
-            lostHours: parseFloat(lostHours.toFixed(2)) // ✅ Return this
+            lostHours: parseFloat(lostHours.toFixed(2)) 
         };
     }
 };
 
-// ... (getAttendanceSummary remains the same) ...
 const getAttendanceSummary = async (req, res) => {
-    // ... copy your existing code here
     try {
         const { startDate, endDate } = req.query;
         if (!startDate || !endDate) return res.status(400).json({ message: "Dates required" });
 
+        // ✅ FIX: Use UTC Hours to match database storage
+        // setHours (Local) was causing issues if server TZ was behind UTC
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0); 
+
+        const end = new Date(endDate);
+        end.setUTCHours(23, 59, 59, 999);
+
         const summary = await Attendance.aggregate([
             {
                 $match: {
-                    date: { $gte: new Date(startDate), $lte: new Date(endDate) },
+                    date: { $gte: start, $lte: end },
                 },
             },
             {
@@ -141,21 +143,18 @@ const getDailyAttendance = async (req, res) => {
     }
 };
 
-// ✅ UPDATED CREATE FUNCTION
 const createDailyAttendance = async (req, res) => {
     try {
         const { date, records } = req.body;
         if (!date || !records) return res.status(400).json({ message: "Invalid data" });
 
+        // This stores the date as UTC Midnight
         const normalizedDate = normalizeDate(date);
 
-        // 1. CHECK DAY TYPE (ROBUST WAY)
-        
-        // Check 1: Sunday? Use getUTCDay() to match the UTC normalized date
+        // 1. CHECK DAY TYPE
         const dayOfWeek = normalizedDate.getUTCDay(); 
         const isSunday = dayOfWeek === 0;
 
-        // Check 2: Holiday? Use a RANGE query to catch any time on that day
         const startOfDay = new Date(normalizedDate);
         const endOfDay = new Date(normalizedDate);
         endOfDay.setUTCHours(23, 59, 59, 999);
@@ -188,7 +187,7 @@ const createDailyAttendance = async (req, res) => {
             
             let normalHours = 0, otHours = 0, doubleOtHours = 0, totalHours = 0;
             let normalPay = 0, otPay = 0, doubleOtPay = 0, dailyPay = 0;
-            let lateDeduction = 0; // ✅ Init variable
+            let lateDeduction = 0;
 
             if (record.status === "Present" && record.startTime && record.endTime) {
                 const calc = calculateTimeLogic(record.startTime, record.endTime, isDoubleOtDay);
@@ -209,8 +208,7 @@ const createDailyAttendance = async (req, res) => {
                 const effectiveDoubleOtRate = empData.rateDoubleOT > 0 ? empData.rateDoubleOT : (empData.salary * 2.0);
                 doubleOtPay = doubleOtHours * effectiveDoubleOtRate;
 
-                // 4. ✅ Calculate Late Deduction (Money Lost)
-                // Logic: lostHours * Basic Salary Rate
+                // 4. Late Deduction
                 if (calc.lostHours > 0) {
                     lateDeduction = calc.lostHours * empData.salary;
                 }
@@ -226,15 +224,12 @@ const createDailyAttendance = async (req, res) => {
                     },
                     update: {
                         $set: {
-                            // ... existing fields ...
                             status: record.status || "Present",
                             startTime: record.startTime,
                             endTime: record.endTime,
                             normalHours, otHours, doubleOtHours, totalHours,
                             hourlyRate: empData.salary, otRate: empData.rateOT, doubleOtRate: empData.rateDoubleOT,
                             normalPay, otPay, doubleOtPay, dailyPay,
-                            
-                            // ✅ Save the Deduction
                             lateDeduction: lateDeduction 
                         },
                     },
@@ -258,16 +253,22 @@ const createDailyAttendance = async (req, res) => {
 };
 
 const getEmployeeAttendanceHistory = async (req, res) => {
-    // ... (your existing code)
     try {
         const { id } = req.params;
         const { startDate, endDate } = req.query;
         const employee = await Employee.findById(id);
         if (!employee) return res.status(404).json({ message: "Not found" });
 
+        // ✅ FIX: Use UTC Hours here as well
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0);
+
+        const end = new Date(endDate);
+        end.setUTCHours(23, 59, 59, 999);
+
         const records = await Attendance.find({
             employee: id,
-            date: { $gte: new Date(startDate), $lte: new Date(endDate) },
+            date: { $gte: start, $lte: end },
         }).sort({ date: -1 });
 
         res.status(200).json({
