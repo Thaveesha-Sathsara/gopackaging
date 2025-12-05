@@ -32,7 +32,7 @@ const EmployeeReports = () => {
     const formatCurrency = (val) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(val);
 
     return (
-        <div className="p-6 min-h-screen bg-gray-50/50 dark:bg-black text-gray-900 dark:text-gray-100 flex flex-col gap-6">
+        <div className="p-6 min-h-screen bg-gray-50-gray-900 flex flex-col gap-6">
             
             {/* TOP BAR */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -42,7 +42,7 @@ const EmployeeReports = () => {
                 </div>
                 <div className="flex gap-3 w-full md:w-auto">
                     <Select onValueChange={setSelectedId}>
-                        <SelectTrigger className="w-[280px] bg-white dark:bg-zinc-900">
+                        <SelectTrigger className="w-[280px] bg-white">
                             <SelectValue placeholder="Select Employee..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -59,7 +59,7 @@ const EmployeeReports = () => {
 
             {/* MAIN CONTENT AREA */}
             {!selectedId ? (
-                <div className="h-96 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
+                <div className="h-96 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl">
                     <User className="h-12 w-12 text-gray-300 mb-2" />
                     <p className="text-gray-500">Select an employee to view their report</p>
                 </div>
@@ -73,9 +73,9 @@ const EmployeeReports = () => {
                     
                     {/* LEFT: PROFILE CARD */}
                     <div className="lg:col-span-4 flex flex-col gap-6">
-                        <Card className="border-none shadow-sm bg-white dark:bg-zinc-900">
+                        <Card className="border-none shadow-sm bg-white">
                             <CardHeader className="flex flex-col items-center pb-2">
-                                <Avatar className="h-24 w-24 mb-4 border-4 border-gray-100 dark:border-zinc-800">
+                                <Avatar className="h-24 w-24 mb-4 border-4 border-gray-100">
                                     <AvatarImage src={reportData.employee.avatar} />
                                     <AvatarFallback className="text-2xl bg-blue-100 text-blue-700">{reportData.employee.employeeName?.charAt(0)}</AvatarFallback>
                                 </Avatar>
@@ -87,7 +87,7 @@ const EmployeeReports = () => {
                                 <InfoRow icon={Phone} label="Phone" value={reportData.employee.contactNumber} />
                                 <InfoRow icon={Calendar} label="Joined" value={new Date(reportData.employee.joiningDate).toLocaleDateString()} />
                                 <InfoRow icon={MapPin} label="Address" value={reportData.employee.address} />
-                                <div className="pt-4 border-t dark:border-zinc-800">
+                                <div className="pt-4 border-t">
                                     <div className="grid grid-cols-2 gap-4 text-center">
                                         <div>
                                             <p className="text-xs text-muted-foreground">Basic Salary</p>
@@ -113,7 +113,7 @@ const EmployeeReports = () => {
                     <div className="lg:col-span-8 flex flex-col gap-6">
                         
                         {/* 1. EARNINGS HISTORY */}
-                        <Card className="border-none shadow-sm dark:bg-zinc-900">
+                        <Card className="border-none shadow-sm">
                             <CardHeader>
                                 <CardTitle className="text-lg">Earnings History (6 Months)</CardTitle>
                             </CardHeader>
@@ -139,7 +139,7 @@ const EmployeeReports = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* 2. ATTENDANCE HEALTH */}
-                            <Card className="border-none shadow-sm dark:bg-zinc-900">
+                            <Card className="border-none shadow-sm">
                                 <CardHeader>
                                     <CardTitle className="text-lg">Attendance Health</CardTitle>
                                 </CardHeader>
@@ -167,7 +167,7 @@ const EmployeeReports = () => {
                             </Card>
 
                             {/* 3. HOURS WORKED */}
-                            <Card className="border-none shadow-sm dark:bg-zinc-900">
+                            <Card className="border-none shadow-sm">
                                 <CardHeader>
                                     <CardTitle className="text-lg">Work Intensity</CardTitle>
                                 </CardHeader>
@@ -193,18 +193,18 @@ const EmployeeReports = () => {
 // Helper Components
 const InfoRow = ({ icon: Icon, label, value }) => (
     <div className="flex items-center gap-3 text-sm">
-        <div className="p-2 bg-gray-100 dark:bg-zinc-800 rounded-md">
+        <div className="p-2 bg-gray-100 rounded-md">
             <Icon className="h-4 w-4 text-gray-500" />
         </div>
         <div className="flex-1">
             <p className="text-muted-foreground text-xs">{label}</p>
-            <p className="font-medium text-gray-900 dark:text-gray-100">{value || "-"}</p>
+            <p className="font-medium text-gray-900">{value || "-"}</p>
         </div>
     </div>
 );
 
 const StatBox = ({ label, value, icon: Icon, color }) => (
-    <div className="p-4 bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-gray-100 dark:border-zinc-800 flex flex-col justify-center items-center text-center">
+    <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
         <Icon className={`h-6 w-6 mb-2 ${color}`} />
         <p className="text-2xl font-bold">{value}</p>
         <p className="text-xs text-muted-foreground">{label}</p>

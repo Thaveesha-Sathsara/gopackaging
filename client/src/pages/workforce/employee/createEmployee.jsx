@@ -117,13 +117,13 @@ const CreateEmployee = () => {
     };
 
     return (
-        <div className="flex flex-col w-full h-full p-6 bg-gray-50 dark:bg-gray-900/50 min-h-screen">
+        <div className="flex flex-col w-full h-full p-6 bg-gray-50 min-h-screen">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     
-                    <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-gray-50 dark:bg-[#0d0d18] z-10 pt-2">
+                    <div className="flex justify-between items-center pb-4 border-b border-gray-200 sticky top-0 bg-gra] z-10 pt-2">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Register Employee</h1>
+                            <h1 className="text-3xl font-bold text-gray-800">Register Employee</h1>
                             <p className="text-gray-500 text-sm">Create a new profile</p>
                         </div>
                         <div className="flex gap-3">
@@ -141,9 +141,9 @@ const CreateEmployee = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="space-y-6">
-                            <Card className="bg-white dark:bg-[#1e1e24] shadow-sm border-none">
+                            <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-semibold text-gray-700 dark:text-gray-200">Identity</CardTitle>
+                                    <CardTitle className="text-lg font-semibold text-gray-700">Identity</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex flex-col items-center gap-4 mb-4">
@@ -168,9 +168,9 @@ const CreateEmployee = () => {
                         </div>
 
                         <div className="space-y-6">
-                            <Card className="bg-white dark:bg-[#1e1e24] shadow-sm border-none">
+                            <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-semibold text-gray-700 dark:text-gray-200">Employment Details</CardTitle>
+                                    <CardTitle className="text-lg font-semibold text-gray-700">Employment Details</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <FormInputField form={form} name="position" label="Position" placeholder="Ex: Machine Operator" />
@@ -179,9 +179,9 @@ const CreateEmployee = () => {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white dark:bg-[#1e1e24] shadow-sm border-none">
+                            <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-semibold text-gray-700 dark:text-gray-200">Contact Info</CardTitle>
+                                    <CardTitle className="text-lg font-semibold text-gray-700">Contact Info</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <FormInputField form={form} name="contactNumber" label="Phone Number" placeholder="Ex: 0771234567" />
@@ -191,9 +191,9 @@ const CreateEmployee = () => {
                         </div>
 
                         <div className="space-y-6">
-                            <Card className="bg-white dark:bg-[#1e1e24] shadow-sm border-none">
+                            <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-semibold text-gray-700 dark:text-gray-200">Benefits & Compensation</CardTitle>
+                                    <CardTitle className="text-lg font-semibold text-gray-700">Benefits & Compensation</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="grid grid-cols-1 gap-4">
@@ -205,7 +205,7 @@ const CreateEmployee = () => {
                                         <FormInputField form={form} name="rateDoubleOT" label="Double OT (Hr)" type="number" />
                                     </div>
 
-                                    <div className="border-t border-gray-100 dark:border-gray-800 my-2"></div>
+                                    <div className="border-t border-gray-100 my-2"></div>
                                     <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Monthly Allowances</p>
                                     
                                     <div className="grid grid-cols-2 gap-4">
@@ -218,7 +218,7 @@ const CreateEmployee = () => {
                                         <FormInputField form={form} name="fixedAdvanceAmount" label="Advance Payment" type="number" />
                                     </div>
 
-                                    <div className="border-t border-gray-100 dark:border-gray-800 my-2"></div>
+                                    <div className="border-t border-gray-100 my-2"></div>
                                     <FormInputField form={form} name="etfRate" label="ETF/EPF Rate (%)" type="number" />
                                 </CardContent>
                             </Card>

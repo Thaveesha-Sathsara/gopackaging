@@ -119,7 +119,7 @@ const AppBreadcrumb = () => {
                   </DrawerTrigger>
                   <DrawerContent>
                     <DrawerHeader className="text-left">
-                      <DrawerTitle className="dark:text-gray-200">
+                      <DrawerTitle className="">
                         Navigate to
                       </DrawerTitle>
                       <DrawerDescription>
@@ -140,7 +140,7 @@ const AppBreadcrumb = () => {
                             ) : (
                               <Link
                                 to={segment.path}
-                                className="dark:text-gray-200"
+                                className=""
                               >
                                 {capitalizeWords(segment.label)}
                               </Link>
@@ -153,7 +153,7 @@ const AppBreadcrumb = () => {
                       <DrawerClose asChild>
                         <Button
                           variant="outline"
-                          className="dark:text-gray-200"
+                          className=""
                         >
                           Close
                         </Button>

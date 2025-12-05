@@ -121,14 +121,14 @@ const EditEmployee = () => {
     if (isLoading) return <div className="p-10 flex justify-center">Loading...</div>;
 
     return (
-        <div className="flex flex-col w-full h-full p-6 bg-gray-50 dark:bg-gray-900/50 min-h-screen">
+        <div className="flex flex-col w-full h-full p-6 bg-gray-50 min-h-screen">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     
                     {/* ✅ Sticky Header */}
-                    <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-gray-50 dark:bg-[#0d0d18] z-10 pt-2">
+                    <div className="flex justify-between items-center pb-4 border-b border-gray-200 sticky top-0 bg-gra] z-10 pt-2">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Edit Employee</h1>
+                            <h1 className="text-3xl font-bold text-gray-800">Edit Employee</h1>
                             <p className="text-gray-500 text-sm">{employee?.employeeName} ({employee?.employeeID})</p>
                         </div>
                         <div className="flex gap-3">
@@ -147,7 +147,7 @@ const EditEmployee = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* COLUMN 1: Identity */}
                         <div className="space-y-6">
-                            <Card className="bg-white dark:bg-[#1e1e24] shadow-sm border-none">
+                            <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold">Identity</CardTitle>
                                 </CardHeader>
@@ -175,7 +175,7 @@ const EditEmployee = () => {
 
                         {/* COLUMN 2: Work */}
                         <div className="space-y-6">
-                            <Card className="bg-white dark:bg-[#1e1e24] shadow-sm border-none">
+                            <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold">Employment Details</CardTitle>
                                 </CardHeader>
@@ -186,7 +186,7 @@ const EditEmployee = () => {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white dark:bg-[#1e1e24] shadow-sm border-none">
+                            <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold">Contact Info</CardTitle>
                                 </CardHeader>
@@ -199,7 +199,7 @@ const EditEmployee = () => {
 
                         {/* COLUMN 3: Compensation */}
                         <div className="space-y-6">
-                            <Card className="bg-white dark:bg-[#1e1e24] shadow-sm border-none">
+                            <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold">Benefits & Compensation</CardTitle>
                                 </CardHeader>
@@ -213,7 +213,7 @@ const EditEmployee = () => {
                                         <FormInputField form={form} name="rateDoubleOT" label="Double OT (Hr)" type="number" />
                                     </div>
 
-                                    <div className="border-t border-gray-100 dark:border-gray-800 my-2"></div>
+                                    <div className="border-t border-gray-100 my-2"></div>
                                     <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Monthly Allowances</p>
                                     
                                     <div className="grid grid-cols-2 gap-4">
@@ -226,7 +226,7 @@ const EditEmployee = () => {
                                         <FormInputField form={form} name="fixedAdvanceAmount" label="Advance Payment" type="number" />
                                     </div>
 
-                                    <div className="border-t border-gray-100 dark:border-gray-800 my-2"></div>
+                                    <div className="border-t border-gray-100 my-2"></div>
                                     <FormInputField form={form} name="etfRate" label="ETF/EPF Rate (%)" type="number" />
                                 </CardContent>
                             </Card>

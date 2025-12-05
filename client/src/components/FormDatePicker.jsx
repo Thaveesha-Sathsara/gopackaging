@@ -33,10 +33,10 @@ const FormDatePicker = ({
       name={name}
       render={({ field }) => (
         <FormItem className="flex flex-col w-full mt-2">
-          <FormLabel className="text-gray-800 dark:text-gray-50 mb-0.5">
+          <FormLabel className="text-gray-800 mb-0.5">
             {label}{" "}
             {required && (
-              <span className="text-red-600 dark:text-red-500">*</span>
+              <span className="text-red-600">*</span>
             )}
           </FormLabel>
           <Popover>
@@ -50,7 +50,7 @@ const FormDatePicker = ({
                       type="button"
                       variant={"outline"}
                       className={cn(
-                        "w-full pl-3 text-left font-normal text-gray-500 dark:text-gray-400",
+                        "w-full pl-3 text-left font-normal text-gray-500",
                         !field.value && "text-muted-foreground"
                       )}
                     >

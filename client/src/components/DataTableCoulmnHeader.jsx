@@ -12,7 +12,7 @@ const DataTableColumnHeader = ({ column, title, wordBreak = false }) => {
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3 h-auto w-36 data-[state=open]:bg-accent dark:text-gray-300 dark:hover:text-white transition-colors"
+        className="-ml-3 h-auto w-36 data-[state=open]:bg-accent transition-colors"
         onClick={column.getToggleSortingHandler()}
       >
         <span

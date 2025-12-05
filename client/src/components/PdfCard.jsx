@@ -33,7 +33,7 @@ export const PdfCard = ({
   };
 
   return (
-    <div className="relative flex items-center w-full h-auto p-6 text-left transition-all duration-300 bg-white border border-gray-200 shadow-md group dark:bg-[#1e1e24] rounded-2xl hover:shadow-lg dark:border-zinc-800">
+    <div className="relative flex items-center w-full h-auto p-6 text-left transition-all duration-300 bg-white border border-gray-200 shadow-md group rounded-2xl hover:shadow-lg">
       {/* Delete button (top-right) */}
       {isAllowedDelete && (
         <div className="absolute top-2 right-2">
@@ -42,17 +42,17 @@ export const PdfCard = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full w-7 h-7 text-gray-500 dark:text-gray-400 dark:hover:bg-zinc-700"
+                className="rounded-full w-7 h-7 text-gray-500"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="dark:bg-[#1e1e24] dark:border-zinc-700"
+              className=""
             >
               <DropdownMenuItem
-                className="flex items-center gap-2 !text-red-500 dark:!text-red-500 hover:!bg-red-200 focus:!bg-red-200 dark:hover:!bg-red-800/50 dark:focus:!bg-red-800/50 cursor-pointer"
+                className="flex items-center gap-2 !text-red-500 hover:!bg-red-200 focus:!bg-red-200 cursor-pointer"
                 onClick={handleDeleteClick}
               >
                 <Trash2 className="w-4 h-4" />
@@ -74,12 +74,12 @@ export const PdfCard = ({
         {/* Text + buttons */}
         <div className="flex flex-col flex-grow min-w-0">
           <h3
-            className="text-base font-medium text-gray-800 dark:text-gray-50"
+            className="text-base font-medium text-gray-800"
             title={pdf.name} // Show full name on hover
           >
             {displayName}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-50 mb-2">
+          <p className="text-sm text-gray-500 mb-2">
             {subtitlePrefix}
             {pdf.year}
           </p>
@@ -98,7 +98,7 @@ export const PdfCard = ({
             <Button
               asChild
               size="sm"
-              className="bg-green-500 hover:bg-green-600 text-white dark:bg-green-700 dark:hover:bg-green-600"
+              className="bg-green-500 hover:bg-green-600 text-white"
             >
               <a
                 href={`${BASE_URL}${pdf.path}`}
@@ -119,7 +119,7 @@ export const PdfCard = ({
  * A skeleton loader for the PdfCard.
  */
 export const PdfCardSkeleton = () => (
-  <div className="relative flex items-center w-full h-auto p-6 text-left border shadow-md rounded-2xl dark:bg-[#1e1e24] dark:border-zinc-800">
+  <div className="relative flex items-center w-full h-auto p-6 text-left border shadow-md rounded-2xl">
     <div className="flex items-center gap-4 w-full min-w-0">
       <Skeleton className="w-16 h-16 rounded-lg flex-shrink-0" />
       <div className="flex flex-col flex-grow min-w-0"> {/* Added min-w-0 here to fix skeleton layout */}

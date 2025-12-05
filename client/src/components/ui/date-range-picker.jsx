@@ -1,6 +1,6 @@
 import * as React from "react"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/src/lib/utils"
 import { Button } from "@/src/components/ui/button"
@@ -13,9 +13,33 @@ import {
 
 export function DateRangePicker({
   className,
-  date, // This will be your dateRange state
-  onDateChange, // This will be your handleDateRangeChange
+  date,
+  onDateChange,
 }) {
+  const [calendarMonth, setCalendarMonth] = React.useState(date?.from || new Date());
+
+  const handlePrevMonth = () => {
+    const prevMonth = new Date(calendarMonth);
+    prevMonth.setMonth(prevMonth.getMonth() - 1);
+    setCalendarMonth(prevMonth);
+    
+    // Auto-select full previous month
+    const monthFirstDay = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
+    const monthLastDay = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
+    onDateChange({ from: monthFirstDay, to: monthLastDay });
+  };
+
+  const handleNextMonth = () => {
+    const nextMonth = new Date(calendarMonth);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    setCalendarMonth(nextMonth);
+    
+    // Auto-select full next month
+    const monthFirstDay = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1);
+    const monthLastDay = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
+    onDateChange({ from: monthFirstDay, to: monthLastDay });
+  };
+
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -44,16 +68,42 @@ export function DateRangePicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
+          {/* Month Navigation - Now Sets Full Month Range */}
+          <div className="flex items-center justify-between p-3 border-b">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePrevMonth}
+              className="h-8 w-8 p-0 hover:bg-accent"
+              title="Previous month (full range)"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium">
+              {format(calendarMonth, "MMMM yyyy")}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNextMonth}
+              className="h-8 w-8 p-0 hover:bg-accent"
+              title="Next month (full range)"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={date?.from}
+            month={calendarMonth}
             selected={date}
-            onSelect={onDateChange} // This calls your handleDateRangeChange
+            onSelect={onDateChange}
             numberOfMonths={2}
           />
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }
+

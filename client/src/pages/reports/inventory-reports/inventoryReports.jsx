@@ -11,7 +11,7 @@ const InventoryReports = () => {
     const [data, setData] = useState(null);
 
     useEffect(() => {
-        fetch('/api/reports/inventory')
+        fetch('/api/reports/inventory') 
             .then(res => res.json())
             .then(setData)
             .catch(console.error);
@@ -25,7 +25,7 @@ const InventoryReports = () => {
     const chartData = rawMaterialStats.details.slice(0, 10);
 
     return (
-        <div className="p-6 min-h-screen bg-gray-50/50 dark:bg-black text-gray-900 dark:text-gray-100 flex flex-col gap-6">
+        <div className="p-6 min-h-screen bg-gray-50/50 text-gray-900 flex flex-col gap-6">
             
             <div className="mb-2">
                 <h1 className="text-3xl font-bold">Inventory Intelligence</h1>
@@ -34,17 +34,17 @@ const InventoryReports = () => {
 
             {/* 1. KPIS */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <KpiCard title="Total Materials" value={rawMaterialStats.total} icon={Layers} color="text-blue-500" bg="bg-blue-50 dark:bg-blue-900/20" />
-                <KpiCard title="Healthy Stock" value={rawMaterialStats.healthyStock} icon={Package} color="text-green-500" bg="bg-green-50 dark:bg-green-900/20" />
-                <KpiCard title="Low Stock" value={rawMaterialStats.lowStock} icon={AlertTriangle} color="text-orange-500" bg="bg-orange-50 dark:bg-orange-900/20" />
-                <KpiCard title="Out of Stock" value={rawMaterialStats.outOfStock} icon={AlertTriangle} color="text-red-500" bg="bg-red-50 dark:bg-red-900/20" />
+                <KpiCard title="Total Materials" value={rawMaterialStats.total} icon={Layers} color="text-blue-500" bg="bg-blue-50" />
+                <KpiCard title="Healthy Stock" value={rawMaterialStats.healthyStock} icon={Package} color="text-green-500" bg="bg-green-50" />
+                <KpiCard title="Low Stock" value={rawMaterialStats.lowStock} icon={AlertTriangle} color="text-orange-500" bg="bg-orange-50" />
+                <KpiCard title="Out of Stock" value={rawMaterialStats.outOfStock} icon={AlertTriangle} color="text-red-500" bg="bg-red-50" />
             </div>
 
             {/* 2. CHARTS ROW */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
                 {/* STOCK VS REORDER LEVEL */}
-                <Card className="border-none shadow-sm dark:bg-zinc-900">
+                <Card className="border-none shadow-sm">
                     <CardHeader>
                         <CardTitle className="text-lg">Stock Level vs Minimum</CardTitle>
                         <CardDescription>Top 10 Items. Red Line = Reorder Point.</CardDescription>
@@ -65,7 +65,7 @@ const InventoryReports = () => {
                 </Card>
 
                 {/* IN/OUT MOVEMENT */}
-                <Card className="border-none shadow-sm dark:bg-zinc-900">
+                <Card className="border-none shadow-sm">
                     <CardHeader>
                         <CardTitle className="text-lg">Stock Movement (30 Days)</CardTitle>
                         <CardDescription>Inward (Purchase/Production) vs Outward (Usage/Sales)</CardDescription>
@@ -86,14 +86,14 @@ const InventoryReports = () => {
             </div>
 
             {/* 3. DETAILED TABLE (Low Stock Focus) */}
-            <Card className="border-none shadow-sm dark:bg-zinc-900">
+            <Card className="border-none shadow-sm">
                 <CardHeader>
                     <CardTitle>Detailed Inventory Status</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800">
+                            <thead className="text-xs text-gray-500 uppercase bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-3">Item Name</th>
                                     <th className="px-6 py-3">Status</th>
@@ -103,7 +103,7 @@ const InventoryReports = () => {
                             </thead>
                             <tbody>
                                 {rawMaterialStats.details.map((item, idx) => (
-                                    <tr key={idx} className="border-b dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
+                                    <tr key={idx} className="border-b hover:bg-gray-50">
                                         <td className="px-6 py-4 font-medium">{item.name}</td>
                                         <td className="px-6 py-4">
                                             <Badge variant={item.status === "Critical" ? "destructive" : "default"} className={item.status === "Good" ? "bg-green-100 text-green-700 hover:bg-green-200" : ""}>
@@ -124,7 +124,7 @@ const InventoryReports = () => {
 };
 
 const KpiCard = ({ title, value, icon: Icon, color, bg }) => (
-    <div className="flex items-center p-4 bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-gray-100 dark:border-zinc-800">
+    <div className="flex items-center p-4 bg-white rounded-lg shadow-sm border border-gray-100">
         <div className={`p-3 rounded-full ${bg} mr-4`}>
             <Icon className={`h-6 w-6 ${color}`} />
         </div>

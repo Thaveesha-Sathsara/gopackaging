@@ -65,7 +65,7 @@ const Columns = (handleDelete) => [
                 style: "currency",
                 currency: "LKR",
             }).format(amount)
-            return <div className="text-right font-medium">{formatted}</div>
+            return <div className="w-24 text-right font-medium">{formatted}</div>
         }
     },
     {

@@ -84,7 +84,7 @@ const DataTable = ({
         </div>
 
         {/* Table Skeleton */}
-        <div className="rounded-md border bg-white dark:bg-zinc-900">
+        <div className="rounded-md border bg-white">
           <div className="grid grid-cols-5 gap-4 p-4 border-b">
             {/* Simulated table header */}
             {[...Array(5)].map((_, i) => (
@@ -121,7 +121,7 @@ const DataTable = ({
           placeholder="Search..."
           value={globalFilter}
           onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm dark:text-gray-200 m-1 bg-white"
+          className="max-w-sm m-1 bg-white"
         />
         <DataTableViewOptions table={table} />
         {actionButtons && (
@@ -130,13 +130,13 @@ const DataTable = ({
       </div>
 
       {subHeading && (
-        <h2 className="text-lg font-medium text-blue-700 dark:text-gray-200 pb-3">
+        <h2 className="text-lg font-medium text-blue-700 pb-3">
           {subHeading}
         </h2>
       )}
 
       <ScrollArea>
-        <div className="rounded-md border bg-white dark:bg-[#0d0d18] dark:border-[#444557]">
+        <div className="rounded-md border bg-white">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -145,7 +145,7 @@ const DataTable = ({
                     return (
                       <TableHead
                         key={header.id}
-                        className="dark:bg-[#1e1f2a] first:rounded-l-md last:rounded-r-md"
+                        className="first:rounded-l-md last:rounded-r-md"
                       >
                         {header.isPlaceholder
                           ? null
@@ -169,7 +169,7 @@ const DataTable = ({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="dark:text-gray-200 font-medium"
+                        className="font-medium"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -183,7 +183,7 @@ const DataTable = ({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-16 text-center dark:text-gray-300"
+                    className="h-16 text-center"
                   >
                     {emptyMessage}
                   </TableCell>

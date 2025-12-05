@@ -55,7 +55,7 @@ const Selector = ({
           ...styles,
           backgroundColor: appTheme === "dark" ? "#27272a" : "white",
           color: appTheme === "dark" ? "white" : "black",
-          className: "dark:text-[#ffffff] dark:placeholder:text-[#8f8fa3] dark:bg-[#33343f] dark:border-[#33343f]",
+          className: "",
         }),
       }}
       theme={(theme) => ({

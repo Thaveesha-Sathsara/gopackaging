@@ -31,7 +31,7 @@ export const PayrollColumns = (dateRange) => [
     {
         accessorKey: "hourlyRate",
         header: ({ column }) => <DataTableColumnHeader column={column} title="Hourly Rate" />,
-        cell: ({ row }) => <div className="text-right">{formatCurrency(row.getValue("hourlyRate"))}</div>
+        cell: ({ row }) => <div className="w-24 text-right">{formatCurrency(row.getValue("hourlyRate"))}</div>
     },
     {
         accessorKey: "totalPay", 

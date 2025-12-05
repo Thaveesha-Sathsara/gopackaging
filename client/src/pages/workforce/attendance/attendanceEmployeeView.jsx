@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/ca
 import DataTable from "@/src/components/DataTable";
 import { Button } from "@/src/components/ui/button";
 import { ArrowLeft, CalendarDays, Clock, AlertTriangle } from "lucide-react";
+import { ScrollArea } from '@radix-ui/react-scroll-area';
 
 // Helper: Calculate actual duration (End - Start)
 const calculateActualDuration = (startTime, endTime) => {
@@ -135,7 +136,7 @@ const AttendanceEmployeeView = () => {
     ];
 
     return (
-        <div className="p-6 flex flex-col gap-6 h-full">
+        <div className="p-6 flex flex-col gap-6 h-full bg-gray-50/50">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -143,13 +144,13 @@ const AttendanceEmployeeView = () => {
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold">{employee.name}</h1>
+                        <h1 className="text-2x2 font-bold">{employee.name}</h1>
                         <p className="text-gray-500">{employee.id} • {employee.position}</p>
                     </div>
                 </div>
                 <div className="text-sm text-gray-500 text-right">
                     Report Period:<br/>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                    <span className="font-medium text-gray-900">
                         {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
                     </span>
                 </div>
@@ -185,16 +186,25 @@ const AttendanceEmployeeView = () => {
                     </CardContent>
                 </Card>
             </div>
+            
+        <ScrollArea>
+            <div className="flex justify-between items-end border-b pb-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Attendance History</h1>
+                    <p className="text-sm text-gray-500 mt-1">Detailed daily attendance records for the selected period.</p>
+                </div>
+            </div>
 
             {/* Table */}
+            
             <Card className="border-none shadow-none bg-transparent">
                  <DataTable 
                     columns={columns} 
                     data={records} 
-                    title="Detailed Attendance History"
                     emptyMessage="No attendance records found for this period."
                 />
-            </Card>
+                </Card>
+                </ScrollArea>
         </div>
     );
 };

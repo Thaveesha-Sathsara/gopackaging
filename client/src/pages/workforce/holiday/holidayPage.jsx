@@ -55,7 +55,7 @@ const HolidayPage = () => {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Holiday Manager</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Holiday Manager</h1>
                     <p className="text-sm text-muted-foreground mt-1">Configure Double OT days for the payroll system.</p>
                 </div>
 
@@ -124,7 +124,7 @@ const HolidayPage = () => {
                             Overview
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-1 p-0 bg-white dark:bg-zinc-950 relative">
+                    <CardContent className="flex-1 p-0 bg-white relative">
                         <Calendar
                             mode="single"
                             // Control BOTH selection and view
@@ -159,12 +159,12 @@ const HolidayPage = () => {
                             modifiers={{
                                 holiday: (date) => isHoliday(date)
                             }}
-                            modifiersStyles={{
-                                holiday: { 
-                                    color: "#ff0a0aff", 
-                                    fontWeight: "bold",
-                                }
-                            }}
+                            // modifiersStyles={{
+                            //     holiday: { 
+                            //         color: "#ff0a0aff", 
+                            //         fontWeight: "bold",
+                            //     }
+                            // }}
                             components={{
                                 DayContent: (props) => {
                                     const isHol = isHoliday(props.date);

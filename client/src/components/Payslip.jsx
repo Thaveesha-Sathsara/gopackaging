@@ -55,8 +55,9 @@ const Payslip = forwardRef(({ data, dateRange }, ref) => {
         </div>
 
         <div className="text-right mt-2">
-        <p className="text-sm text-gray-600">No. 12, Address</p>
-        <p className="text-sm text-gray-600">+94 123 456 7890</p>
+        <p className="text-sm text-gray-600">No. 1522, Ketakellagaha Watta Road,</p>
+        <p className="text-sm text-gray-600">Kottawa, Pannipitiya, Sri Lanka.</p>
+        <p className="text-sm text-gray-600">+94 (0)11 218-9691</p>
         <p className="text-sm text-gray-600">www.lcs-enterprise.com.lk</p>
         </div>
       </div>

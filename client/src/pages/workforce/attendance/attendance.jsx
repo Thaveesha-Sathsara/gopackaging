@@ -19,8 +19,6 @@ const Attendance = () => {
     
     const handleDateRangeChange = (range) => {
         if (range?.from) {
-            // ✅ FIX: If 'to' is missing (single day selection), default it to 'from'.
-            // This ensures the query always has a valid start and end.
             setDateRange({
                 from: range.from,
                 to: range.to || range.from 
@@ -44,7 +42,7 @@ const Attendance = () => {
             <div className="flex justify-between items-end border-b pb-4">
                 <div>
                     {/* Fixed typo: text 2x1 -> text-2xl */}
-                    <h1 className="text-2xl font-bold text-gray-900">Attendance Management</h1>
+                    <h1 className="text-2x2 font-bold text-gray-900">Attendance Management</h1>
                     <p className="text-sm text-gray-500 mt-1">Manage attendance records.</p>
                 </div>
 

@@ -18,7 +18,7 @@ const DataTableViewOptions = ({ table }) => {
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto hidden h-8 lg:flex bg-transparent dark:text-white"
+          className="ml-auto hidden h-8 lg:flex bg-transparent"
         >
           <Settings2 />
           View

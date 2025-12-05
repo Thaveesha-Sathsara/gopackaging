@@ -16,14 +16,14 @@ const RootLayout = () => {
         <AppSidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
           <SidebarInset>
-            <header className="flex items-center justify-between h-16 gap-2 px-4 border-b border-gray-300 shrink-0 dark:border-[#444557] bg-gray-50 dark:bg-[#1e1f2a]">
+            <header className="flex items-center justify-between h-16 gap-2 px-4 border-b border-gray-300 shrink-0 bg-gray-50">
               <div className="flex items-center">
-                <SidebarTrigger className="-ml-1 dark:text-white" />
+                <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="h-4 mr-2" />
                 <AppBreadcrumb />
               </div>
             </header>
-            <main className="flex-1 overflow-auto bg-slate-200 dark:bg-[#12131d]">
+            <main className="flex-1 overflow-auto bg-slate-200">
               <Outlet />
             </main>
           </SidebarInset>

@@ -7,8 +7,8 @@ const TabNavigation = ({ title, isActive, isHovered, onHover, onClick }) => {
         isActive
           ? "text-blue-700"
           : isHovered
-          ? "text-gray-600 dark:text-gray-400"
-          : "text-gray-500 dark:text-gray-100"
+          ? "text-gray-600"
+          : "text-gray-500"
       }`}
       onMouseEnter={() => onHover(title)}
       onMouseLeave={onHover}
@@ -20,8 +20,8 @@ const TabNavigation = ({ title, isActive, isHovered, onHover, onClick }) => {
           isActive
             ? "bg-blue-700"
             : isHovered
-            ? "bg-gray-500 opacity-100 dark:text-gray-400"
-            : "bg-gray-500 opacity-0 group-hover:opacity-100 dark:text-gray-100"
+            ? "bg-gray-500 opacity-100"
+            : "bg-gray-500 opacity-0 group-hover:opacity-100"
         }`}
       ></span>
     </button>

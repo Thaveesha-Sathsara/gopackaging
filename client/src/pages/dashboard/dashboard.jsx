@@ -28,13 +28,13 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="p-6 flex flex-col gap-6 bg-gray-50/50 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100">
+        <div className="p-6 flex flex-col gap-6 bg-gray-50/50 min-h-screen text-gray-900">
             
             {/* 1. HEADER & ACTIONS */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Executive Dashboard</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                    <p className="text-gray-500 text-sm mt-1">
                         Overview of workforce performance and inventory health.
                     </p>
                 </div>
@@ -44,7 +44,7 @@ const Dashboard = () => {
                         size="icon"
                         onClick={() => setShowFinance(!showFinance)}
                         title={showFinance ? "Hide Financials" : "Show Financials"}
-                        className="dark:border-gray-700 dark:bg-gray-900"
+                        className=""
                     >
                         {showFinance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -64,9 +64,9 @@ const Dashboard = () => {
                     subValue={`${stats.presentToday} Present Today`}
                     icon={Users} 
                     color="text-blue-500" 
-                    bg="bg-blue-50 dark:bg-blue-950/30"
+                    bg="bg-blue-50"
                     trend={`${stats.attendanceRate}% Rate`}
-                    trendColor="text-blue-600 dark:text-blue-400"
+                    trendColor="text-blue-600"
                 />
                 <StatCard 
                     title="Total Man Hours (30d)" 
@@ -74,7 +74,7 @@ const Dashboard = () => {
                     subValue={`${stats.otHours} OT Hours`}
                     icon={Clock} 
                     color="text-purple-500" 
-                    bg="bg-purple-50 dark:bg-purple-950/30"
+                    bg="bg-purple-50"
                     trend="Efficiency Metric"
                     trendColor="text-gray-500"
                 />
@@ -84,7 +84,7 @@ const Dashboard = () => {
                     subValue="Includes OT & Allowances"
                     icon={DollarSign} 
                     color="text-emerald-500" 
-                    bg="bg-emerald-50 dark:bg-emerald-950/30"
+                    bg="bg-emerald-50"
                     trend={showFinance ? "Tracked" : "Hidden"}
                     trendColor={showFinance ? "text-emerald-600" : "text-gray-400"}
                 />
@@ -94,7 +94,7 @@ const Dashboard = () => {
                     subValue="Items below min level"
                     icon={AlertTriangle} 
                     color="text-red-500" 
-                    bg="bg-red-50 dark:bg-red-950/30"
+                    bg="bg-red-50"
                     trend="Action Required"
                     trendColor="text-red-600 font-bold"
                 />
@@ -104,7 +104,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 {/* Financial Trend Chart */}
-                <Card className="lg:col-span-2 shadow-sm border-gray-200 dark:border-gray-800 dark:bg-zinc-900">
+                <Card className="lg:col-span-2 shadow-sm border-gray-200 ">
                     <CardHeader>
                         <CardTitle className="text-lg">Payroll & OT Trend (6 Months)</CardTitle>
                         <CardDescription>Monthly expenditure breakdown</CardDescription>
@@ -135,7 +135,7 @@ const Dashboard = () => {
                                 </AreaChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-600">
+                            <div className="h-full flex flex-col items-center justify-center text-gray-400">
                                 <EyeOff className="h-10 w-10 mb-2 opacity-50" />
                                 <p>Financial data hidden</p>
                                 <Button variant="link" onClick={() => setShowFinance(true)}>Reveal Data</Button>
@@ -145,7 +145,7 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Upcoming Holidays / Events */}
-                <Card className="shadow-sm border-gray-200 dark:border-gray-800 dark:bg-zinc-900">
+                <Card className="shadow-sm border-gray-200">
                     <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                             <CalendarDays className="h-5 w-5 text-gray-500" /> Upcoming Events
@@ -158,17 +158,17 @@ const Dashboard = () => {
                                 <p className="text-sm text-gray-500">No upcoming holidays.</p>
                             ) : (
                                 lists.upcomingHolidays.map((holiday) => (
-                                    <div key={holiday._id} className="flex items-center gap-4 p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border dark:border-zinc-700">
-                                        <div className="flex flex-col items-center justify-center bg-white dark:bg-zinc-900 w-12 h-12 rounded-lg shadow-sm border dark:border-zinc-700">
+                                    <div key={holiday._id} className="flex items-center gap-4 p-3 rounded-lg bg-gray-50/50 border">
+                                        <div className="flex flex-col items-center justify-center bg-white w-12 h-12 rounded-lg shadow-sm border">
                                             <span className="text-xs font-bold text-red-500 uppercase">
                                                 {new Date(holiday.date).toLocaleString('default', { month: 'short' })}
                                             </span>
-                                            <span className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                            <span className="text-lg font-bold text-gray-800">
                                                 {new Date(holiday.date).getDate()}
                                             </span>
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{holiday.name}</p>
+                                            <p className="font-semibold text-gray-800 text-sm">{holiday.name}</p>
                                             <Badge variant="secondary" className="mt-1 text-[10px] h-5">
                                                 {holiday.type}
                                             </Badge>
@@ -183,9 +183,9 @@ const Dashboard = () => {
 
             {/* 4. BOTTOM ROW: Inventory Details */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-1 shadow-sm border-l-4 border-l-red-500 border-gray-200 dark:border-gray-800 dark:bg-zinc-900">
+                <Card className="lg:col-span-1 shadow-sm border-l-4 border-l-red-500 border-gray-200">
                     <CardHeader>
-                        <CardTitle className="text-lg text-red-600 dark:text-red-400 flex items-center gap-2">
+                        <CardTitle className="text-lg text-red-600 flex items-center gap-2">
                              <AlertTriangle className="h-5 w-5" /> Critical Stock
                         </CardTitle>
                     </CardHeader>
@@ -199,11 +199,11 @@ const Dashboard = () => {
                             lists.lowStockMaterials.map(item => (
                                 <div key={item._id} className="space-y-1">
                                     <div className="flex justify-between text-sm">
-                                        <span className="font-medium dark:text-gray-300">{item.name}</span>
-                                        <span className="text-red-600 dark:text-red-400 font-bold">{item.currentStock} / {item.minimumLevel} {item.unit}</span>
+                                        <span className="font-medium">{item.name}</span>
+                                        <span className="text-red-600 font-bold">{item.currentStock} / {item.minimumLevel} {item.unit}</span>
                                     </div>
                                     {/* Progress Bar Manual Implementation for simplicity */}
-                                    <div className="h-2 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                    <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                                         <div 
                                             className="h-full bg-red-500" 
                                             style={{ width: `${Math.min((item.currentStock / item.minimumLevel) * 100, 100)}%` }} 
@@ -219,36 +219,36 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Quick Actions (Using the previous logic but styled) */}
-                <Card className="lg:col-span-2 shadow-sm border-gray-200 dark:border-gray-800 dark:bg-zinc-900">
+                <Card className="lg:col-span-2 shadow-sm border-gray-200">
                     <CardHeader><CardTitle className="text-lg">Quick Access</CardTitle></CardHeader>
                     <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <QuickAction 
                             to="/workforce/employee/create" 
                             label="Add Employee" 
                             icon={Users} 
-                            color="text-blue-600 dark:text-blue-400" 
-                            bg="bg-blue-50 dark:bg-blue-900/20" 
+                            color="text-blue-600" 
+                            bg="bg-blue-50/20" 
                         />
                         <QuickAction 
                             to="/workforce/payroll" 
                             label="Process Payroll" 
                             icon={DollarSign} 
-                            color="text-green-600 dark:text-green-400" 
-                            bg="bg-green-50 dark:bg-green-900/20" 
+                            color="text-green-600" 
+                            bg="bg-green-50/20" 
                         />
                         <QuickAction 
                             to="/inventory/finished-goods" 
                             label="Production" 
                             icon={Package} 
-                            color="text-purple-600 dark:text-purple-400" 
-                            bg="bg-purple-50 dark:bg-purple-900/20" 
+                            color="text-purple-600" 
+                            bg="bg-purple-50/20" 
                         />
                          <QuickAction 
                             to="/inventory/raw-materials" 
                             label="Stock In/Out" 
                             icon={ArrowUpRight} 
-                            color="text-orange-600 dark:text-orange-400" 
-                            bg="bg-orange-50 dark:bg-orange-900/20" 
+                            color="text-orange-600" 
+                            bg="bg-orange-50/20" 
                         />
                     </CardContent>
                 </Card>
@@ -260,12 +260,12 @@ const Dashboard = () => {
 // --- SUB COMPONENTS (Enterprise Styled) ---
 
 const StatCard = ({ title, value, subValue, icon: Icon, color, bg, trend, trendColor }) => (
-    <Card className="border-none shadow-sm dark:bg-zinc-900 overflow-hidden relative">
+    <Card className="border-none shadow-sm overflow-hidden relative">
         <CardContent className="p-5">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{title}</p>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{value}</h3>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{title}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
                     <p className="text-xs text-gray-400 mt-1">{subValue}</p>
                 </div>
                 <div className={`p-3 rounded-xl ${bg}`}>
@@ -281,15 +281,15 @@ const StatCard = ({ title, value, subValue, icon: Icon, color, bg, trend, trendC
 
 const QuickAction = ({ to, label, icon: Icon, color, bg }) => (
     <Link to={to} className="group">
-        <div className={`flex flex-col items-center justify-center p-4 rounded-xl border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer ${bg} bg-opacity-50 hover:bg-opacity-100`}>
+        <div className={`flex flex-col items-center justify-center p-4 rounded-xl border border-transparent hover:border-gray-200-700 transition-all cursor-pointer ${bg} bg-opacity-50 hover:bg-opacity-100`}>
             <Icon className={`h-6 w-6 mb-2 ${color}`} />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">{label}</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900-white">{label}</span>
         </div>
     </Link>
 );
 
 const DashboardSkeleton = () => (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-black min-h-screen">
+    <div className="p-6 space-y-6 bg-gray-h-screen">
         <div className="flex justify-between"><Skeleton className="h-8 w-48" /><Skeleton className="h-10 w-32" /></div>
         <div className="grid grid-cols-4 gap-4"><Skeleton className="h-32" /><Skeleton className="h-32" /><Skeleton className="h-32" /><Skeleton className="h-32" /></div>
         <div className="grid grid-cols-3 gap-6 h-80"><Skeleton className="col-span-2 h-full" /><Skeleton className="col-span-1 h-full" /></div>

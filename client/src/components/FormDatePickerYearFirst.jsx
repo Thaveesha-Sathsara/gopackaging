@@ -11,8 +11,8 @@ const Button = ({ children, className, ...props }) => (
         type="button" 
         className={cn(
             "flex items-center w-full px-3 py-2 text-sm border rounded-md shadow-sm transition-colors",
-            "bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-800",
-            "hover:bg-gray-50 dark:hover:bg-zinc-800 focus:ring-2 focus:ring-blue-500",
+            "bg-white border-gray-300",
+            "hover:bg-gray-50 focus:ring-2 focus:ring-blue-500",
             className
         )} 
         {...props}
@@ -83,7 +83,7 @@ const FormDatePickerYearFirst = ({
             name={name}
             render={({ field }) => (
                 <FormItem className="flex flex-col w-full mt-2">
-                    <FormLabel className="text-gray-800 dark:text-gray-200 mb-1 font-medium">
+                    <FormLabel className="text-gray-800 mb-1 font-medium">
                         {label} {required && <span className="text-red-600">*</span>}
                     </FormLabel>
                     

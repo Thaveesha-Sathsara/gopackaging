@@ -32,10 +32,10 @@ const FormCheckbox = ({
                   onCheckedChange={field.onChange}
                 />
               )}
-              <FormLabel className="text-gray-800 dark:text-gray-50 m-0">
+              <FormLabel className="text-gray-800 m-0">
                 {label}
                 {required && (
-                  <span className="text-red-600 dark:text-red-500"> *</span>
+                  <span className="text-red-600"> *</span>
                 )}
               </FormLabel>
             </div>

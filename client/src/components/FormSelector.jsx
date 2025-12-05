@@ -25,10 +25,10 @@ const FormSelector = ({
       name={name}
       render={({ field }) => (
         <FormItem className="w-full">
-          <FormLabel className="text-gray-800 dark:text-gray-50">
+          <FormLabel className="text-gray-800">
             {label}{" "}
             {required && (
-              <span className="text-red-600 dark:text-red-500">*</span>
+              <span className="text-red-600">*</span>
             )}
           </FormLabel>
           <FormControl>

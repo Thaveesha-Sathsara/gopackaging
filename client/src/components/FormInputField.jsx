@@ -39,10 +39,10 @@ const FormInputField = ({
       name={name}
       render={() => (
         <FormItem className="w-full">
-          <FormLabel className="text-gray-800 dark:text-gray-50">
+          <FormLabel className="text-gray-800">
             {label}{" "}
             {required && (
-              <span className="text-red-600 dark:text-red-500">*</span>
+              <span className="text-red-600">*</span>
             )}
           </FormLabel>
           <FormControl>
@@ -51,7 +51,7 @@ const FormInputField = ({
             ) : (
               <Input
                 type={type}
-                className="text-gray-950 dark:text-gray-50 dark:placeholder:text-[#0d0d18] dark:bg-[#0d0d18] dark:border-[#33343f] dark:read-only:bg-[#1a1b26]"
+                className="text-gray-950"
                 placeholder={placeholder}
                 value={value}
                 readOnly
@@ -68,10 +68,10 @@ const FormInputField = ({
       name={name}
       render={({ field }) => (
         <FormItem className="w-full">
-          <FormLabel className="text-gray-800 dark:text-gray-50">
+          <FormLabel className="text-gray-800">
             {label}{" "}
             {required && (
-              <span className="text-red-600 dark:text-red-500">*</span>
+              <span className="text-red-600">*</span>
             )}
           </FormLabel>
           <FormControl>
@@ -80,7 +80,7 @@ const FormInputField = ({
             ) : (
               <Input
                 type={type}
-                className="text-gray-950 dark:text-[#ffffff] dark:placeholder:text-[#8f8fa3] dark:bg-[#0d0d18] dark:border-[#33343f] dark:read-only:bg-[#1a1b26]"
+                className="text-gray-950"
                 placeholder={placeholder}
                 {...field}
                 readOnly={readOnly}

@@ -32,6 +32,9 @@ import {
     CalendarCheck,
     Percent
 } from "lucide-react";
+import EmployeeProfilePrint from '@/src/components/EmployeeProfilePrint';
+import { useReactToPrint } from 'react-to-print';
+import { useRef } from 'react';
 
 const getInitials = (name = "") => {
     return name
@@ -46,10 +49,10 @@ const DetailRow = ({ icon, label, value }) => {
     return (
         <div className="flex items-center gap-3">
             <Icon className="text-blue-500 size-4 shrink-0" />
-            <span className="font-semibold w-28 text-gray-700 dark:text-gray-200">
+            <span className="font-semibold w-28 text-gray-700">
                 {label}:
             </span>
-            <span className="text-gray-600 dark:text-gray-400 break-words">
+            <span className="text-gray-600 break-words">
                 {value || "N/A"}
             </span>
         </div>
@@ -60,6 +63,7 @@ const ViewEmployee = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { employee, isLoading } = useEmployee(id);
+    const printRef = useRef(null);
 
     const handleFormatDate = (dateString) => {
         if (!dateString) return "N/A";
@@ -69,6 +73,13 @@ const ViewEmployee = () => {
             day: 'numeric',
         });
     };
+
+    const handlePrint = useReactToPrint({
+        documentTitle: employee?.employeeName
+            ? `${employee.employeeName}-Profile`
+            : `Employee-Profile`,
+        contentRef: printRef,
+    })
 
     const handleFormatCurrency = (amount) => {
         // Fix: Check for undefined/null explicitly, allow 0
@@ -99,22 +110,22 @@ const ViewEmployee = () => {
             {/* Left Column */}
             <div className="lg:col-span-2 flex flex-col gap-6">
                 {/* Profile Header */}
-                <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                <Card className="bg-white shadow-md rounded-2xl">
                     <CardContent className="flex items-center gap-4 p-6">
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navigate(-1)}>
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
                         <Avatar className="h-10 w-10 rounded-lg">
                             <AvatarImage src={employee.avatar} alt={employee.employeeName} />
-                            <AvatarFallback className="rounded-lg text-black dark:text-gray-50">
+                            <AvatarFallback className="rounded-lg text-black">
                                 {getInitials(employee.employeeName)}
                             </AvatarFallback>
                         </Avatar>
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-0.5">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-0.5">
                                 {employee.employeeName}
                             </h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-0.5">
+                            <p className="text-sm text-gray-500 mb-0.5">
                                 {employee.position}
                             </p>
                         </div>
@@ -131,31 +142,35 @@ const ViewEmployee = () => {
                                         <span>Edit Employee</span>
                                     </Link>
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handlePrint} className="cursor-pointer flex items-center gap-2">
+                                    <FileText className="h-4 w-4" />
+                                    <span>Print Profile</span>
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </CardContent>
                 </Card>
 
                 {/* Personal Details */}
-                <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                <Card className="bg-white shadow-md rounded-2xl">
                     <CardHeader>
-                        <CardTitle className="text-gray-800 dark:text-gray-100 text-base">
+                        <CardTitle className="text-gray-800 text-base">
                             Personal Details
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm">
                         <DetailRow icon={ContactRound} label="NIC" value={employee.nic} />
-                        <div className="border-t border-gray-300 dark:border-gray-700"></div>
+                        <div className="border-t border-gray-300"></div>
                         <DetailRow icon={CalendarDays} label="Date of Birth" value={handleFormatDate(employee.dob)} />
-                        <div className="border-t border-gray-300 dark:border-gray-700"></div>
+                        <div className="border-t border-gray-300"></div>
                         <DetailRow icon={MapPin} label="Address" value={employee.address} />
                     </CardContent>
                 </Card>
 
                 {/* ✅ NEW COMPENSATION CARD (This was missing in your paste!) */}
-                <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                <Card className="bg-white shadow-md rounded-2xl">
                     <CardHeader>
-                        <CardTitle className="text-gray-800 dark:text-gray-100 text-base flex items-center gap-2">
+                        <CardTitle className="text-gray-800 text-base flex items-center gap-2">
                             <DollarSign className="size-4 text-green-600" /> Compensation Package
                         </CardTitle>
                     </CardHeader>
@@ -163,17 +178,17 @@ const ViewEmployee = () => {
                         <DetailRow icon={Clock} label="Hourly Rate" value={handleFormatCurrency(employee.salary)} />
                         
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded border dark:border-gray-700">
+                            <div className="bg-gray-50 p-2 rounded border">
                                 <span className="block text-[10px] uppercase text-gray-500">OT Rate</span>
                                 <span className="font-bold">{handleFormatCurrency(employee.rateOT)}</span>
                             </div>
-                            <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded border dark:border-gray-700">
+                            <div className="bg-gray-50 p-2 rounded border">
                                 <span className="block text-[10px] uppercase text-gray-500">Double OT</span>
                                 <span className="font-bold">{handleFormatCurrency(employee.rateDoubleOT)}</span>
                             </div>
                         </div>
                         
-                        <div className="border-t border-gray-300 dark:border-gray-700"></div>
+                        <div className="border-t border-gray-300"></div>
                         <p className="font-semibold text-xs text-gray-500 uppercase tracking-wider">Allowances</p>
                         
                         <DetailRow icon={Utensils} label="Meal" value={handleFormatCurrency(employee.allowanceMeal)} />
@@ -181,7 +196,7 @@ const ViewEmployee = () => {
                         <DetailRow icon={CalendarCheck} label="Attn. Bonus" value={handleFormatCurrency(employee.allowanceAttendance)} />
                         <DetailRow icon={DollarSign} label="Adv. Payment" value={handleFormatCurrency(employee.fixedAdvanceAmount)} />
                         
-                        <div className="border-t border-gray-300 dark:border-gray-700"></div>
+                        <div className="border-t border-gray-300"></div>
                         <DetailRow icon={Percent} label="ETF Rate" value={`${employee.etfRate}%`} />
                     </CardContent>
                 </Card>
@@ -190,19 +205,19 @@ const ViewEmployee = () => {
             {/* Right Column */}
             <div className="lg:col-span-1 flex flex-col gap-6">
                 {/* Employment Details */}
-                <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                <Card className="bg-white shadow-md rounded-2xl">
                     <CardHeader>
-                        <CardTitle className="text-gray-800 dark:text-gray-100 text-base">
+                        <CardTitle className="text-gray-800 text-base">
                             Employment Details
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm">
                         <DetailRow icon={Hash} label="Employee ID" value={employee.employeeID} />
-                        <div className="border-t border-gray-300 dark:border-gray-700"></div>
+                        <div className="border-t border-gray-300"></div>
                         <DetailRow icon={Briefcase} label="Position" value={employee.position} />
-                        <div className="border-t border-gray-300 dark:border-gray-700"></div>
+                        <div className="border-t border-gray-300"></div>
                         <DetailRow icon={CalendarDays} label="Joined Date" value={handleFormatDate(employee.joiningDate)} />
-                        <div className="border-t border-gray-300 dark:border-gray-700"></div>
+                        <div className="border-t border-gray-300"></div>
                         <DetailRow 
                             icon={employee.isActived ? CheckCircle : XCircle} 
                             label="Status" 
@@ -212,9 +227,9 @@ const ViewEmployee = () => {
                 </Card>
 
                 {/* Contact */}
-                <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                <Card className="bg-white shadow-md rounded-2xl">
                     <CardHeader>
-                        <CardTitle className="text-gray-800 dark:text-gray-100 text-base">
+                        <CardTitle className="text-gray-800 text-base">
                             Contact
                         </CardTitle>
                     </CardHeader>
@@ -227,18 +242,27 @@ const ViewEmployee = () => {
             {/* Remarks */}
             {employee.remarks && (
                 <div className="lg:col-span-3">
-                    <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                    <Card className="bg-white shadow-md rounded-2xl">
                         <CardHeader>
-                            <CardTitle className="text-gray-800 dark:text-gray-100 text-base">
+                            <CardTitle className="text-gray-800 text-base">
                                 <FileText className="inline-block mr-2 h-4 w-4" /> Remarks
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="text-sm text-gray-600 dark:text-gray-400">
+                        <CardContent className="text-sm text-gray-600">
                             {employee.remarks}
                         </CardContent>
                     </Card>
                 </div>
             )}
+            
+            <div style={{ display: "none" }}>
+                <div ref={printRef}>
+                    <EmployeeProfilePrint 
+                        employee={employee}
+                    />
+                </div>
+            </div>
+
         </div>
     );
 };
@@ -247,7 +271,7 @@ const EmployeeViewSkeleton = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 md:p-6 h-full">
             <div className="lg:col-span-2 flex flex-col gap-6">
-                <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                <Card className="bg-white shadow-md rounded-2xl">
                     <CardContent className="flex items-center gap-4 p-6">
                         <Skeleton className="h-10 w-10 rounded-lg" />
                         <div className="space-y-2">
@@ -256,7 +280,7 @@ const EmployeeViewSkeleton = () => {
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                <Card className="bg-white shadow-md rounded-2xl">
                     <CardHeader>
                         <Skeleton className="h-5 w-40" />
                     </CardHeader>
@@ -268,7 +292,7 @@ const EmployeeViewSkeleton = () => {
                 </Card>
             </div>
             <div className="lg:col-span-1 flex flex-col gap-6">
-                <Card className="bg-white dark:bg-[#1e1e24] shadow-md rounded-2xl">
+                <Card className="bg-white shadow-md rounded-2xl">
                     <CardHeader>
                         <Skeleton className="h-5 w-40" />
                     </CardHeader>

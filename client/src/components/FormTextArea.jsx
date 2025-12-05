@@ -26,10 +26,10 @@ const FormTextArea = ({
       name={name}
       render={() => (
         <FormItem className="w-full">
-          <FormLabel className="text-gray-800 dark:text-gray-50">
+          <FormLabel className="text-gray-800">
             {label}{" "}
             {required && (
-              <span className="text-red-600 dark:text-red-500">*</span>
+              <span className="text-red-600">*</span>
             )}
           </FormLabel>
           <FormControl>
@@ -38,7 +38,7 @@ const FormTextArea = ({
             ) : (
               <Textarea
                 rows={rows}
-                className="text-gray-950 dark:text-gray-50 dark:bg-[#0d0d18]"
+                className="text-gray-950"
                 placeholder={placeholder}
                 value={value}
                 readOnly
@@ -55,10 +55,10 @@ const FormTextArea = ({
       name={name}
       render={({ field }) => (
         <FormItem className="w-full">
-          <FormLabel className="text-gray-800 dark:text-gray-50">
+          <FormLabel className="text-gray-800">
             {label}{" "}
             {required && (
-              <span className="text-red-600 dark:text-red-500">*</span>
+              <span className="text-red-600">*</span>
             )}
           </FormLabel>
           <FormControl>
@@ -67,7 +67,7 @@ const FormTextArea = ({
             ) : (
               <Textarea
                 rows={rows}
-                className="text-gray-950 dark:text-gray-50 dark:bg-[#0d0d18]"
+                className="text-gray-950"
                 placeholder={placeholder}
                 readOnly={readOnly}
                 {...field}

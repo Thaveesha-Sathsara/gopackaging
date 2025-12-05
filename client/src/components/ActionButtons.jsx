@@ -36,7 +36,7 @@ const ActionButtons = ({ buttons }) => {
             className={clsx(
               buttonVariants({ variant, size: "default" }),
               // If buttonVariants doesn't apply background, add fallback
-              "inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors bg-blue-700 text-white hover:bg-blue-800 dark:bg-[#0018f9] dark:hover:bg-[#000ca5] dark:text-white"
+              "inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors bg-blue-700 text-white hover:bg-blue-800"
             )}
           >
             {label}

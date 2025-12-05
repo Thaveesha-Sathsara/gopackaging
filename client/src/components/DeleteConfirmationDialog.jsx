@@ -39,7 +39,7 @@ const DeleteConfirmationDialog = ({ open, onOpenChange, item, onDelete, isDeleti
                     </DialogTitle>
                     <DialogDescription>
                         This action cannot be undone. This will permanently delete 
-                        <span className="font-bold text-black dark:text-white mx-1">
+                        <span className="font-bold text-black mx-1">
                             {targetName}
                         </span> 
                         and all its history.
