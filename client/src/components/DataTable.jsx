@@ -210,48 +210,6 @@ const DataTable = ({
           </TableBody>
         </Table>
       </ScrollArea>
-
-      <div className="md:hidden space-y-4">
-        {isLoading ? (
-           // Mobile Loading Skeleton
-           [...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-lg" />)
-        ) : (
-           table.getRowModel().rows.map((row) => (
-             <div key={row.id} className="bg-white p-4 rounded-lg border shadow-sm space-y-2">
-               {/* Custom render for mobile card */}
-               <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs text-gray-500 block">Name</span>
-                    <span className="font-medium">{row.getValue("employeeName")}</span>
-                  </div>
-                  {/* Reuse the formatted cell from your columns if possible, or render directly */}
-                  <div className="text-right">
-                    <span className="text-xs text-gray-500 block">Total Pay</span>
-                     {/* You might need to access the rendered cell content or raw value */}
-                    <span className="font-bold text-green-600">
-                        {/* Manually formatting here for simplicity, or grab the cell render */}
-                        {new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(row.getValue("totalPay"))}
-                    </span>
-                  </div>
-               </div>
-               
-               <div className="flex justify-between items-center border-t pt-2 mt-2">
-                  <div className="text-sm text-gray-600">
-                    {row.getValue("totalHours")} Hrs @ {row.getValue("hourlyRate")}/hr
-                  </div>
-                  {/* Render the Actions cell */}
-                  <div>
-                    {flexRender(
-                        row.getVisibleCells().find(cell => cell.column.id === 'actions')?.column.columnDef.cell,
-                        row.getVisibleCells().find(cell => cell.column.id === 'actions')?.getContext()
-                    )}
-                  </div>
-               </div>
-             </div>
-           ))
-        )}
-      </div>
-
       <DataTablePagination table={table} />
     </div>
   );
