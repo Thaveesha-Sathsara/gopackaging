@@ -25,7 +25,6 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import FinishedGoodForm from './finishedGoodsForm';
 import HistorySheet from '../historySheet';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
 
 const FinishedGoods = () => {
     const { items, isLoading, adjustStock, deleteItem, isDeleting } = useInventory("finished-goods");
@@ -189,14 +188,15 @@ const FinishedGoods = () => {
                 </Button>
             </div>
 
-            <ScrollArea>
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
             <DataTable 
                 columns={columns} 
                 data={items || []} 
                 isLoading={isLoading}
                 emptyMessage="No finished goods defined yet."
                 />
-            </ScrollArea>
+            </div>
+            
 
             {/* Adjust Stock Dialog */}
             <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>

@@ -3,7 +3,6 @@ import { useForm, useFieldArray, FormProvider, Controller } from "react-hook-for
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/src/services/axiosInstance";
 import { createAlert, errorAlert } from "@/src/lib/alert";
-import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Checkbox } from "@/src/components/ui/checkbox";
@@ -210,14 +209,15 @@ const MonthlyAdjustments = () => {
             </div>
 
             {/* Table Section */}
-            <ScrollArea>
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                 <DataTable 
                     columns={columns} 
                     data={fields} 
                     isLoading={isLoading}
                     emptyMessage="No employees found for adjustment."
                 />
-            </ScrollArea>
+            </div>
+            
         </div>
     );
 };

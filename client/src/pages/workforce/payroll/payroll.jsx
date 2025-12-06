@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import DataTable from "@/src/components/DataTable";
-import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { DateRangePicker } from "@/src/components/ui/date-range-picker"; 
 import { usePayroll } from "@/src/hooks/workforce/usePayroll";
 import { PayrollColumns } from "./PayrollColumns"; // We create this next
@@ -35,14 +34,16 @@ const Payroll = () => {
 
                 </div>
             </div>
-            <ScrollArea>
+            
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                     <DataTable
                         columns={PayrollColumns(dateRange)}
                         data={payrollSummary || []}
                         emptyMessage="No payroll records found for this period."
                         isLoading={isLoadingSummary}
-                    />
-            </ScrollArea>
+                />
+            </div>
+
         </div>
     );
 };

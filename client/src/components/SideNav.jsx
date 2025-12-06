@@ -128,10 +128,10 @@ const SideNav = () => {
     };
 
     return (
-        <Sidebar>
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
+        <Sidebar className="bg-white">
+            <SidebarHeader className="bg-white">
+                <SidebarMenu className="bg-white">
+                    <SidebarMenuItem className="bg-white">
                         <div className="flex items-center gap-2 p-2">
                             <div className="flex items-center justify-center rounded-lg size-8 bg-color: #0F0F48; aspect-square text-sidebar-primary-foreground">
                                 <img
@@ -147,7 +147,7 @@ const SideNav = () => {
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="bg-white">
                 <ScrollArea>
                     <SidebarGroup>
                         <SidebarGroupContent>

@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/src/components/ui/button";
 import FormDatePicker from "@/src/components/FormDatePicker";
 import DataTable from "@/src/components/DataTable";
-import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { Input } from "@/src/components/ui/input";
 import { useEmployee } from "@/src/hooks/workforce/useEmployee";
 import { useAttendance } from "@/src/hooks/workforce/useAttendance";
@@ -129,14 +128,14 @@ const CreateDailyAttendance = () => {
                         </div>
                     </div>
 
-                    <ScrollArea>
+                    <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                         <DataTable
                             columns={CreateAttendanceColumns(control, setValue)}
                             data={filteredFields}
                             emptyMessage="No employees found."
                             isLoading={isLoading}
                         />
-                    </ScrollArea>
+                    </div>
 
                     <div className="px-6 py-4 border-t sticky bottom-0">
                         <div className="flex justify-end gap-4">

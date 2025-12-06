@@ -1,7 +1,6 @@
 import React from "react";
 import ActionButtons from "@/src/components/ActionButtons";
 import DataTable from "@/src/components/DataTable";
-import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { useEmployee } from "@/src/hooks/workforce/useEmployee";
 import { deleteAlert } from "@/src/lib/alert";
 import  Columns  from "./columns";
@@ -43,7 +42,7 @@ const Employee = () => {
                 <div>{actionButtons}</div>
 
             </div>
-            <ScrollArea>
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                 <DataTable
                     columns={Columns(handleDelete)}
                     data={employees || []}
@@ -51,7 +50,8 @@ const Employee = () => {
                     emptyMessage="No results."
                     isLoading={isLoading}
                 />
-            </ScrollArea>
+            </div>
+            
         </div>
     );
 };

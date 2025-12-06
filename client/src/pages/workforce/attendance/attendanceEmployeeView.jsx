@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/ca
 import DataTable from "@/src/components/DataTable";
 import { Button } from "@/src/components/ui/button";
 import { ArrowLeft, CalendarDays, Clock, AlertTriangle } from "lucide-react";
-import { ScrollArea } from '@radix-ui/react-scroll-area';
 
 // Helper: Calculate actual duration (End - Start)
 const calculateActualDuration = (startTime, endTime) => {
@@ -187,24 +186,24 @@ const AttendanceEmployeeView = () => {
                 </Card>
             </div>
             
-        <ScrollArea>
-            <div className="flex justify-between items-end border-b pb-4">
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Attendance History</h1>
                     <p className="text-sm text-gray-500 mt-1">Detailed daily attendance records for the selected period.</p>
                 </div>
-            </div>
+            
 
             {/* Table */}
             
-            <Card className="border-none shadow-none bg-transparent">
-                 <DataTable 
-                    columns={columns} 
-                    data={records} 
-                    emptyMessage="No attendance records found for this period."
-                />
+                <Card className="border-none shadow-none bg-transparent">
+                     <DataTable 
+                        columns={columns} 
+                        data={records} 
+                        emptyMessage="No attendance records found for this period."
+                    />
                 </Card>
-                </ScrollArea>
+            </div>
+                
         </div>
     );
 };

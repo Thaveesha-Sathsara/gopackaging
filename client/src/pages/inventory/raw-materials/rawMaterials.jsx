@@ -33,7 +33,6 @@ import { Label } from "@/src/components/ui/label";
 import RawMaterialForm from './rawMaterialsForm';
 import HistorySheet from '../historySheet';
 import DeleteConfirmationDialog from '@/src/components/DeleteConfirmationDialog';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
 
 const RawMaterials = () => {
     const { items, isLoading, adjustStock, deleteItem, isDeleting } = useInventory("raw-materials");
@@ -202,13 +201,14 @@ const RawMaterials = () => {
                 </Button>
             </div>
 
-            <ScrollArea>
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
             <DataTable 
                 columns={columns} 
                 data={items || []} 
                 isLoading={isLoading}
                 />
-            </ScrollArea>
+            </div>
+            
 
             <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
                 <DialogContent>

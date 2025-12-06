@@ -140,7 +140,7 @@ const getDailyAttendance = async (req, res) => {
         const { date } = req.query;
         if (!date) return res.status(400).json({ message: "Date required" });
         const searchDate = normalizeDate(date);
-        const records = await Attendance.find({ date: searchDate }).populate({ path: "employee", select: "employeeID employeeName isActivted", match: { isActivted: true } });
+        const records = await Attendance.find({ date: searchDate }).populate({ path: "employee", select: "employeeID employeeName isActived", match: { isActived: true } });
         res.status(200).json(records);
     } catch (error) {
         res.status(500).json({ message: error.message });

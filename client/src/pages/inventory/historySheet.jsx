@@ -7,7 +7,6 @@ import {
     SheetDescription,
 } from "@/src/components/ui/sheet";
 import { useInventory } from '@/src/hooks/inventory/useInventory';
-import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 const HistorySheet = ({ item, open, onOpenChange }) => {
@@ -25,7 +24,7 @@ const HistorySheet = ({ item, open, onOpenChange }) => {
                     </SheetDescription>
                 </SheetHeader>
 
-                <ScrollArea className="h-[85vh] mt-4 pr-4">
+                <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                     {isLoading ? (
                         <p>Loading...</p>
                     ) : history?.length === 0 ? (
@@ -55,7 +54,7 @@ const HistorySheet = ({ item, open, onOpenChange }) => {
                             ))}
                         </div>
                     )}
-                </ScrollArea>
+                </div>
             </SheetContent>
         </Sheet>
     );
