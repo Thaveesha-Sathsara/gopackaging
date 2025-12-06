@@ -11,7 +11,7 @@ const formatCurrency = (amount) => {
 
 const runDailyReport = () => {
     // Schedule: 8:00 AM every day ('0 8 * * *')
-    cron.schedule("0 3 * * *", async () => {
+    cron.schedule("0 8 * * *", async () => {
         console.log("Running Daily Report Job...");
 
         try {
