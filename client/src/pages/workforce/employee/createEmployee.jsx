@@ -1,37 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, Save, X, Plus, ChevronDown, Clock, ShieldAlert, Trash2, Settings2 } from "lucide-react";
-
-// --- REAL IMPORTS ---
 import { Button } from "@/src/components/ui/button";
 import { Form } from "@/src/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/src/components/ui/dialog";
-import { Label } from "@/src/components/ui/label";
-import { Checkbox } from "@/src/components/ui/checkbox";
-import { Input } from "@/src/components/ui/input";
+import { useEmployee } from "@/src/hooks/workforce/useEmployee";
+import { createAlert, errorAlert } from "@/src/lib/alert";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { z } from "zod";
+import { 
+    Camera, Save, X, Settings2, Plus, Clock, 
+    ShieldAlert, Trash2, ChevronDown 
+} from "lucide-react"; 
 
 import FormDatePicker from "@/src/components/FormDatePicker";
 import FormDatePickerYearFirst from "@/src/components/FormDatePickerYearFirst";
 import FormInputField from "@/src/components/FormInputField";
 import FormSelector from "@/src/components/FormSelector";
-
-import { useEmployee } from "@/src/hooks/workforce/useEmployee";
-import { createAlert, errorAlert } from "@/src/lib/alert";
 import { compressImage } from "@/src/lib/imageHelper";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/src/components/ui/dialog";
+import { Label } from "@/src/components/ui/label";
+import { Checkbox } from "@/src/components/ui/checkbox";
+import { Input } from "@/src/components/ui/input";
 import axiosInstance from "@/src/services/axiosInstance";
 
-// --- SCHEMA ---
+// ✅ Schema uses 'role' (String ID)
 const formSchema = z.object({
     employeeID: z.string().min(1, "Required"),
     employeeName: z.string().min(1, "Required"),
@@ -40,7 +39,7 @@ const formSchema = z.object({
     contactNumber: z.string().min(1, "Required"),
     address: z.string().min(1, "Required"),
     
-    role: z.string().min(1, "Role is required"), // Stores the Role ID
+    role: z.string().min(1, "Role is required"), 
     
     joiningDate: z.coerce.date(),
     isActived: z.string().min(1, "Required"),
@@ -68,7 +67,7 @@ const CreateEmployee = () => {
     const [roles, setRoles] = useState([]);
     const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
     
-    // New Role Form State
+    // Form for creating a new role inside the dialog
     const [roleForm, setRoleForm] = useState({
         name: "",
         allowOvertime: true,
@@ -94,7 +93,7 @@ const CreateEmployee = () => {
         },
     });
 
-    // 1. Fetch Roles from Backend
+    // 1. Fetch Roles from API
     const fetchRoles = async () => {
         try {
             const res = await axiosInstance.get('/api/workforce/job-roles');
@@ -149,12 +148,11 @@ const CreateEmployee = () => {
         }
     };
 
-    // 3. Create New Role (API Call)
+    // 3. Create Role Logic
     const handleCreateRole = async () => {
         if (!roleForm.name.trim()) return;
         try {
             const res = await axiosInstance.post('/api/workforce/job-roles', roleForm);
-            createAlert(`Role '${roleForm.name}' created!`);
             
             await fetchRoles(); // Refresh dropdown
             form.setValue("role", res.data._id); // Auto-select new role
@@ -176,8 +174,8 @@ const CreateEmployee = () => {
         if (!window.confirm(`Delete "${roleName}"?`)) return;
         try {
             await axiosInstance.delete(`/api/workforce/job-roles/${roleId}`);
-            createAlert("Role deleted.");
             await fetchRoles();
+            // If the deleted role was selected, clear it
             if (form.getValues("role") === roleId) form.setValue("role", "");
         } catch (err) {
             errorAlert("Failed to delete role", err);
@@ -193,14 +191,14 @@ const CreateEmployee = () => {
                 avatar: avatarPreview
             };
             
-            // Call the real hook function
+            // Await the hook function (Ensure your hook returns mutateAsync or a Promise)
             await createEmployee(employeeData); 
             
             createAlert("Employee Added Successfully");
             navigate(path);
         } catch (error) {
             console.error(error);
-            // Error alert is likely handled inside useEmployee, but safe to add here if needed
+            // Error alert is handled in the hook, usually
         } finally {
             setIsSubmitting(false);
         }
@@ -266,7 +264,7 @@ const CreateEmployee = () => {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     
-                                    {/* ROLE SELECTOR WITH MANAGE BUTTON */}
+                                    {/* ✅ ROLE SELECTOR WITH MANAGE BUTTON */}
                                     <div className="flex items-end gap-2">
                                         <div className="flex-1">
                                             <FormSelector 
@@ -347,7 +345,7 @@ const CreateEmployee = () => {
                         {/* CREATE NEW ROLE */}
                         <div className="space-y-4 bg-gray-50 p-4 rounded-md border border-dashed border-gray-300">
                             <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                <Plus className="h-4 w-4" /> Create New Role
+                                <Plus className="h-4 w-4 text-blue-600" /> Create New Role
                             </h4>
                             
                             <div className="space-y-2">
@@ -381,32 +379,28 @@ const CreateEmployee = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <div className="flex items-start space-x-3">
+                            <div className="space-y-3 pt-2">
+                                <div className="flex items-center gap-3">
                                     <Checkbox 
                                         id="allowOT" 
                                         checked={roleForm.allowOvertime} 
                                         onCheckedChange={(val) => setRoleForm({ ...roleForm, allowOvertime: val })} 
                                     />
-                                    <div className="grid gap-1 leading-none">
-                                        <label htmlFor="allowOT" className="text-sm font-medium cursor-pointer">Allow Normal OT</label>
-                                    </div>
+                                    <Label htmlFor="allowOT" className="cursor-pointer">Allow Normal OT</Label>
                                 </div>
-                                <div className="flex items-start space-x-3">
+                                <div className="flex items-center gap-3">
                                     <Checkbox 
                                         id="allowDOT" 
                                         checked={roleForm.allowDoubleOT} 
                                         onCheckedChange={(val) => setRoleForm({ ...roleForm, allowDoubleOT: val })} 
                                     />
-                                    <div className="grid gap-1 leading-none">
-                                        <label htmlFor="allowDOT" className="text-sm font-medium cursor-pointer flex items-center gap-2">
-                                            Allow Double OT <ShieldAlert className="h-3 w-3 text-orange-500"/>
-                                        </label>
-                                    </div>
+                                    <Label htmlFor="allowDOT" className="cursor-pointer flex items-center gap-2">
+                                        Allow Double OT <ShieldAlert className="h-3 w-3 text-orange-500" />
+                                    </Label>
                                 </div>
                             </div>
 
-                            <Button onClick={handleCreateRole} size="sm" className="w-full">Create Role</Button>
+                            <Button onClick={handleCreateRole} size="sm" className="w-full">Save New Role</Button>
                         </div>
 
                         {/* EXISTING ROLES LIST */}
@@ -418,7 +412,10 @@ const CreateEmployee = () => {
                                 ) : (
                                     roles.map((role) => (
                                         <div key={role.value} className="flex items-center justify-between p-3 bg-white hover:bg-gray-50 transition-colors">
-                                            <span className="text-sm font-medium text-gray-800">{role.label}</span>
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-800">{role.label}</p>
+                                                <p className="text-xs text-gray-500">{role.startTime} - {role.endTime} • {role.allowOvertime ? "OT: Yes" : "OT: No"}</p>
+                                            </div>
                                             <Button 
                                                 type="button"
                                                 variant="ghost" 

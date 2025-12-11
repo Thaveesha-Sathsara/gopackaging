@@ -1,5 +1,16 @@
 import Swal from "sweetalert2";
 
+// 1. HELPER: This forces the SweetAlert container to be above Shadcn Dialogs
+const highZIndexFix = {
+  didOpen: () => {
+    const container = Swal.getContainer();
+    if (container) {
+      // Shadcn modals are usually 50. We set this to 99999 to be safe.
+      container.style.zIndex = "99999"; 
+    }
+  }
+};
+
 const Toast = Swal.mixin({
   toast: true,
   position: "top-end",
@@ -9,8 +20,10 @@ const Toast = Swal.mixin({
   didOpen: (toast) => {
     toast.onmouseenter = Swal.stopTimer;
     toast.onmouseleave = Swal.resumeTimer;
+    // Apply Z-Index fix to toasts too
+    const container = Swal.getContainer();
+    if (container) container.style.zIndex = "99999";
   },
-  // Add custom class for toasts
   customClass: {
     popup: "swal2-toast-popup",
   },
@@ -28,23 +41,22 @@ export const infoAlert = (title, text) => {
     icon: "info",
     title,
     text,
-    // Add custom class for modal alerts
     customClass: {
       popup: "swal2-modal-popup",
     },
+    ...highZIndexFix, // <--- Added Fix
   });
 };
 
 export const createAlert = (title, text, icon = "success") => {
-  // Added icon parameter for flexibility
   Swal.fire({
-    icon: icon, // Use the passed icon, defaults to 'success'
+    icon: icon,
     title,
     text,
-    // Add custom class for modal alerts
     customClass: {
       popup: "swal2-modal-popup",
     },
+    ...highZIndexFix, // <--- Added Fix
   });
 };
 
@@ -68,19 +80,17 @@ export const updateAlert = (
       cancelButtonColor: "#6B7280",
       confirmButtonText,
       reverseButtons: true,
-      allowOutsideClick: false, // Prevent interaction outside modal
-      allowEscapeKey: false, // Prevent closing with escape key
-      // Add custom class for modal alerts
+      allowOutsideClick: false,
+      allowEscapeKey: false,
       customClass: {
         popup: "swal2-modal-popup",
       },
+      ...highZIndexFix, // <--- Added Fix
     }).then((result) => {
       if (result.isConfirmed) {
         try {
-          // Ensure updateFunction is awaited if it returns a Promise
           const res = updateFunction();
           if (res && typeof res.then === "function") {
-            // Check if it's a promise
             res
               .then(() => {
                 Swal.fire({
@@ -88,8 +98,9 @@ export const updateAlert = (
                   text: successMessage,
                   icon: "success",
                   customClass: {
-                  popup: "swal2-modal-popup",
+                    popup: "swal2-modal-popup",
                   },
+                  ...highZIndexFix, // <--- Added Fix
                 });
                 resolve("success");
               })
@@ -102,18 +113,19 @@ export const updateAlert = (
                   customClass: {
                     popup: "swal2-modal-popup",
                   },
+                  ...highZIndexFix, // <--- Added Fix
                 });
                 reject("error");
               });
           } else {
-            // Not a promise
             Swal.fire({
               title: isDraft ? "Drafted!" : "Updated!",
               text: successMessage,
               icon: "success",
               customClass: {
-               popup: "swal2-modal-popup",
+                popup: "swal2-modal-popup",
               },
+              ...highZIndexFix, // <--- Added Fix
             });
             resolve("success");
           }
@@ -126,6 +138,7 @@ export const updateAlert = (
             customClass: {
               popup: "swal2-modal-popup",
             },
+            ...highZIndexFix, // <--- Added Fix
           });
           reject("error");
         }
@@ -137,8 +150,9 @@ export const updateAlert = (
           customClass: {
             popup: "swal2-modal-popup",
           },
+          ...highZIndexFix, // <--- Added Fix
         });
-        resolve("cancelled"); // Resolve with 'cancelled'
+        resolve("cancelled");
       }
     });
   });
@@ -153,7 +167,6 @@ export const deleteAlert = (
   deleteFunction
 ) => {
   return new Promise((resolve) => {
-    // Changed to Promise to handle async deleteFunction
     Swal.fire({
       title,
       text,
@@ -164,17 +177,16 @@ export const deleteAlert = (
       cancelButtonColor: "#6B7280",
       confirmButtonText,
       reverseButtons: true,
-      allowOutsideClick: false, // Prevent interaction outside modal
-      allowEscapeKey: false, // Prevent closing with escape key
-      // Add custom class for modal alerts
+      allowOutsideClick: false,
+      allowEscapeKey: false,
       customClass: {
         popup: "swal2-modal-popup",
       },
+      ...highZIndexFix, // <--- Added Fix
     }).then(async (result) => {
-      // Made this async to await deleteFunction
       if (result.isConfirmed) {
         try {
-          await deleteFunction(); // Await the delete function
+          await deleteFunction();
           Swal.fire({
             title: "Deleted!",
             text: successMessage,
@@ -182,6 +194,7 @@ export const deleteAlert = (
             customClass: {
               popup: "swal2-modal-popup",
             },
+            ...highZIndexFix, // <--- Added Fix
           });
           resolve("success");
         } catch (error) {
@@ -193,8 +206,9 @@ export const deleteAlert = (
             customClass: {
               popup: "swal2-modal-popup",
             },
+            ...highZIndexFix, // <--- Added Fix
           });
-          resolve("error"); // Resolve with 'error'
+          resolve("error");
         }
       } else {
         Swal.fire({
@@ -204,8 +218,9 @@ export const deleteAlert = (
           customClass: {
             popup: "swal2-modal-popup",
           },
+          ...highZIndexFix, // <--- Added Fix
         });
-        resolve("cancelled"); // Resolve with 'cancelled'
+        resolve("cancelled");
       }
     });
   });
@@ -216,10 +231,10 @@ export const errorAlert = (title, text) => {
     icon: "error",
     title,
     html: text,
-    // Add custom class for modal alerts
     customClass: {
       popup: "swal2-modal-popup",
     },
+    ...highZIndexFix, // <--- Added Fix
   });
 };
 
@@ -234,12 +249,12 @@ export const logoutAlert = async (logout) => {
       cancelButtonColor: "#6b7280",
       confirmButtonText: "Logout",
       cancelButtonText: "Cancel",
-      allowOutsideClick: false, // Prevent interaction outside modal
-      allowEscapeKey: false, // Prevent closing with escape key
-      // Add custom class for modal alerts
+      allowOutsideClick: false,
+      allowEscapeKey: false,
       customClass: {
         popup: "swal2-modal-popup",
       },
+      ...highZIndexFix, // <--- Added Fix
     });
 
     if (result.isConfirmed) {
@@ -248,12 +263,12 @@ export const logoutAlert = async (logout) => {
         title: "Logged Out!",
         text: "You have been successfully logged out.",
         icon: "success",
-        timer: 2000, // Show for 2 seconds
+        timer: 2000,
         showConfirmButton: false,
-        // Add custom class for toasts (even if it's a temporary modal-like success)
         customClass: {
           popup: "swal2-toast-popup",
         },
+        ...highZIndexFix, // <--- Added Fix
       });
     }
   } catch (error) {
@@ -265,6 +280,7 @@ export const logoutAlert = async (logout) => {
       customClass: {
         popup: "swal2-modal-popup",
       },
+      ...highZIndexFix, // <--- Added Fix
     });
   }
 };
