@@ -1,20 +1,37 @@
+import React, { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Camera, Save, X, Plus, ChevronDown, Clock, ShieldAlert, Trash2, Settings2 } from "lucide-react";
+
+// --- REAL IMPORTS ---
 import { Button } from "@/src/components/ui/button";
 import { Form } from "@/src/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { useEmployee } from "@/src/hooks/workforce/useEmployee";
-import { createAlert } from "@/src/lib/alert";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { z } from "zod";
-import { Camera, Save, X } from "lucide-react"; // Added Icons
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/src/components/ui/dialog";
+import { Label } from "@/src/components/ui/label";
+import { Checkbox } from "@/src/components/ui/checkbox";
+import { Input } from "@/src/components/ui/input";
+
 import FormDatePicker from "@/src/components/FormDatePicker";
 import FormDatePickerYearFirst from "@/src/components/FormDatePickerYearFirst";
 import FormInputField from "@/src/components/FormInputField";
 import FormSelector from "@/src/components/FormSelector";
-import { compressImage } from "@/src/lib/imageHelper";
 
+import { useEmployee } from "@/src/hooks/workforce/useEmployee";
+import { createAlert, errorAlert } from "@/src/lib/alert";
+import { compressImage } from "@/src/lib/imageHelper";
+import axiosInstance from "@/src/services/axiosInstance";
+
+// --- SCHEMA ---
 const formSchema = z.object({
     employeeID: z.string().min(1, "Required"),
     employeeName: z.string().min(1, "Required"),
@@ -22,7 +39,9 @@ const formSchema = z.object({
     dob: z.coerce.date(),
     contactNumber: z.string().min(1, "Required"),
     address: z.string().min(1, "Required"),
-    position: z.string().min(1, "Required"),
+    
+    role: z.string().min(1, "Role is required"), // Stores the Role ID
+    
     joiningDate: z.coerce.date(),
     isActived: z.string().min(1, "Required"),
     remarks: z.string().optional(),
@@ -40,10 +59,24 @@ const CreateEmployee = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const path = `/workforce/employee`;
+    
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState(null);
     const { createEmployee, employees, isLoading } = useEmployee();
     
+    // --- ROLE MANAGEMENT STATE ---
+    const [roles, setRoles] = useState([]);
+    const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+    
+    // New Role Form State
+    const [roleForm, setRoleForm] = useState({
+        name: "",
+        allowOvertime: true,
+        allowDoubleOT: true,
+        startTime: "08:00",
+        endTime: "17:00"
+    });
+
     const isActiveOptions = [ 
         { label: "Active", value: "Active" },
         { label: "Inactive", value: "Inactive" },
@@ -53,13 +86,31 @@ const CreateEmployee = () => {
         resolver: zodResolver(formSchema),
         defaultValues: {
             employeeID: "", employeeName: "", nic: "", dob: null,
-            contactNumber: "", address: "", position: "",
+            contactNumber: "", address: "", 
+            role: "", 
             joiningDate: null, remarks: "", isActived: "Active",
             salary: 0, allowanceMeal: 0, allowanceMedical: 0, allowanceAttendance: 0, fixedAdvanceAmount: 0,
             rateOT: 0, rateDoubleOT: 0, etfRate: 3,
         },
     });
 
+    // 1. Fetch Roles from Backend
+    const fetchRoles = async () => {
+        try {
+            const res = await axiosInstance.get('/api/workforce/job-roles');
+            // Transform for FormSelector: { value: _id, label: name }
+            const formatted = res.data.map(r => ({ value: r._id, label: r.name }));
+            setRoles(formatted);
+        } catch (err) {
+            console.error("Failed to fetch roles", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchRoles();
+    }, []);
+
+    // 2. ID Generation Logic
     useEffect(() => {
         if (isLoading && !location.state?.employees) { 
             form.setValue("employeeID", "Generating..."); 
@@ -98,7 +149,42 @@ const CreateEmployee = () => {
         }
     };
 
-    const onSubmit = (data) => {
+    // 3. Create New Role (API Call)
+    const handleCreateRole = async () => {
+        if (!roleForm.name.trim()) return;
+        try {
+            const res = await axiosInstance.post('/api/workforce/job-roles', roleForm);
+            createAlert(`Role '${roleForm.name}' created!`);
+            
+            await fetchRoles(); // Refresh dropdown
+            form.setValue("role", res.data._id); // Auto-select new role
+            
+            // Reset Form
+            setRoleForm({
+                name: "",
+                allowOvertime: true,
+                allowDoubleOT: true,
+                startTime: "08:00",
+                endTime: "17:00"
+            });
+        } catch (err) {
+            errorAlert("Failed to create role", err);
+        }
+    };
+
+    const handleDeleteRole = async (roleId, roleName) => {
+        if (!window.confirm(`Delete "${roleName}"?`)) return;
+        try {
+            await axiosInstance.delete(`/api/workforce/job-roles/${roleId}`);
+            createAlert("Role deleted.");
+            await fetchRoles();
+            if (form.getValues("role") === roleId) form.setValue("role", "");
+        } catch (err) {
+            errorAlert("Failed to delete role", err);
+        }
+    };
+
+    const onSubmit = async (data) => {
         setIsSubmitting(true);
         try {
             const employeeData = { 
@@ -106,11 +192,15 @@ const CreateEmployee = () => {
                 isActived: data.isActived === "Active",
                 avatar: avatarPreview
             };
-            createEmployee(employeeData);
+            
+            // Call the real hook function
+            await createEmployee(employeeData); 
+            
             createAlert("Employee Added Successfully");
             navigate(path);
         } catch (error) {
             console.error(error);
+            // Error alert is likely handled inside useEmployee, but safe to add here if needed
         } finally {
             setIsSubmitting(false);
         }
@@ -120,8 +210,8 @@ const CreateEmployee = () => {
         <div className="flex flex-col w-full h-full p-6 bg-gray-50 min-h-screen">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    
-                    <div className="flex justify-between items-center pb-4 border-b border-gray-200 sticky top-0 bg-gra] z-10 pt-2">
+                    {/* Header */}
+                    <div className="flex justify-between items-center pb-4 border-b border-gray-200 sticky top-0 bg-gray-50 z-10 pt-2">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-800">Register Employee</h1>
                             <p className="text-gray-500 text-sm">Create a new profile</p>
@@ -140,6 +230,7 @@ const CreateEmployee = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Column 1: Identity */}
                         <div className="space-y-6">
                             <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
@@ -167,13 +258,37 @@ const CreateEmployee = () => {
                             </Card>
                         </div>
 
+                        {/* Column 2: Job Details */}
                         <div className="space-y-6">
                             <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold text-gray-700">Employment Details</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <FormInputField form={form} name="position" label="Position" placeholder="Ex: Machine Operator" />
+                                    
+                                    {/* ROLE SELECTOR WITH MANAGE BUTTON */}
+                                    <div className="flex items-end gap-2">
+                                        <div className="flex-1">
+                                            <FormSelector 
+                                                form={form} 
+                                                name="role" 
+                                                label="Job Role / Position" 
+                                                options={roles} 
+                                                placeholder="Select a role..."
+                                            />
+                                        </div>
+                                        <Button 
+                                            type="button" 
+                                            variant="outline" 
+                                            size="icon" 
+                                            className="mb-[2px] border-dashed border-gray-400 text-gray-600 hover:text-blue-600 hover:border-blue-600"
+                                            onClick={() => setIsRoleDialogOpen(true)}
+                                            title="Manage Roles"
+                                        >
+                                            <Settings2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+
                                     <FormDatePicker form={form} name="joiningDate" label="Joining Date" fromYear={2000} />
                                     <FormSelector form={form} name="isActived" label="Employment Status" options={isActiveOptions} />
                                 </CardContent>
@@ -190,34 +305,28 @@ const CreateEmployee = () => {
                             </Card>
                         </div>
 
+                        {/* Column 3: Compensation */}
                         <div className="space-y-6">
                             <Card className="bg-white shadow-sm border-none">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold text-gray-700">Benefits & Compensation</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <FormInputField form={form} name="salary" label="Basic Hourly Rate (LKR)" type="number" />
-                                    </div>
-                                    
+                                    <FormInputField form={form} name="salary" label="Basic Hourly Rate (LKR)" type="number" />
                                     <div className="grid grid-cols-2 gap-4">
                                         <FormInputField form={form} name="rateOT" label="OT Rate (Hr)" type="number" />
                                         <FormInputField form={form} name="rateDoubleOT" label="Double OT (Hr)" type="number" />
                                     </div>
-
                                     <div className="border-t border-gray-100 my-2"></div>
                                     <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Monthly Allowances</p>
-                                    
                                     <div className="grid grid-cols-2 gap-4">
                                         <FormInputField form={form} name="allowanceMeal" label="Meal" type="number" />
                                         <FormInputField form={form} name="allowanceMedical" label="Medical" type="number" />
                                     </div>
-
                                     <div className="grid grid-cols-2 gap-4">
                                         <FormInputField form={form} name="allowanceAttendance" label="Attendance Bonus" type="number" />
                                         <FormInputField form={form} name="fixedAdvanceAmount" label="Advance Payment" type="number" />
                                     </div>
-
                                     <div className="border-t border-gray-100 my-2"></div>
                                     <FormInputField form={form} name="etfRate" label="ETF/EPF Rate (%)" type="number" />
                                 </CardContent>
@@ -226,6 +335,111 @@ const CreateEmployee = () => {
                     </div>
                 </form>
             </Form>
+
+            {/* --- MANAGE JOB ROLES DIALOG --- */}
+            <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Manage Job Roles</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4 px-1 flex flex-col gap-6 max-h-[80vh] overflow-y-auto">
+                        
+                        {/* CREATE NEW ROLE */}
+                        <div className="space-y-4 bg-gray-50 p-4 rounded-md border border-dashed border-gray-300">
+                            <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <Plus className="h-4 w-4" /> Create New Role
+                            </h4>
+                            
+                            <div className="space-y-2">
+                                <Label>Role Name</Label>
+                                <Input 
+                                    placeholder="Ex: Driver, Security Guard"
+                                    value={roleForm.name}
+                                    onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
+                                    className="bg-white"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2 text-xs text-gray-500"><Clock className="h-3 w-3"/> Shift Start</Label>
+                                    <Input 
+                                        type="time"
+                                        value={roleForm.startTime}
+                                        onChange={(e) => setRoleForm({ ...roleForm, startTime: e.target.value })}
+                                        className="bg-white"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2 text-xs text-gray-500"><Clock className="h-3 w-3"/> Shift End</Label>
+                                    <Input 
+                                        type="time"
+                                        value={roleForm.endTime}
+                                        onChange={(e) => setRoleForm({ ...roleForm, endTime: e.target.value })}
+                                        className="bg-white"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-start space-x-3">
+                                    <Checkbox 
+                                        id="allowOT" 
+                                        checked={roleForm.allowOvertime} 
+                                        onCheckedChange={(val) => setRoleForm({ ...roleForm, allowOvertime: val })} 
+                                    />
+                                    <div className="grid gap-1 leading-none">
+                                        <label htmlFor="allowOT" className="text-sm font-medium cursor-pointer">Allow Normal OT</label>
+                                    </div>
+                                </div>
+                                <div className="flex items-start space-x-3">
+                                    <Checkbox 
+                                        id="allowDOT" 
+                                        checked={roleForm.allowDoubleOT} 
+                                        onCheckedChange={(val) => setRoleForm({ ...roleForm, allowDoubleOT: val })} 
+                                    />
+                                    <div className="grid gap-1 leading-none">
+                                        <label htmlFor="allowDOT" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                                            Allow Double OT <ShieldAlert className="h-3 w-3 text-orange-500"/>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Button onClick={handleCreateRole} size="sm" className="w-full">Create Role</Button>
+                        </div>
+
+                        {/* EXISTING ROLES LIST */}
+                        <div className="space-y-3">
+                            <h4 className="text-sm font-semibold text-gray-700">Existing Roles</h4>
+                            <div className="border rounded-md divide-y overflow-hidden max-h-40 overflow-y-auto">
+                                {roles.length === 0 ? (
+                                    <div className="p-4 text-center text-sm text-gray-500">No roles found.</div>
+                                ) : (
+                                    roles.map((role) => (
+                                        <div key={role.value} className="flex items-center justify-between p-3 bg-white hover:bg-gray-50 transition-colors">
+                                            <span className="text-sm font-medium text-gray-800">{role.label}</span>
+                                            <Button 
+                                                type="button"
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                onClick={() => handleDeleteRole(role.value, role.label)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsRoleDialogOpen(false)}>Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

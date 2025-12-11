@@ -1,8 +1,12 @@
 const Employees = require("../../models/workforce/employee.model");
+const JobRole = require("../../models/workforce/jobRole.model"); // Import JobRole
 
 const getAllEmployees = async (req, res) => {
     try {
-        const employees = await Employees.find().sort({ createdAt: -1 });
+        // Populate role so we can see the name in the frontend list
+        const employees = await Employees.find()
+            .populate("role", "name") 
+            .sort({ createdAt: -1 });
 
         if (employees.length === 0) {
             return res.status(200).json([]);
@@ -17,8 +21,7 @@ const getAllEmployees = async (req, res) => {
 const getEmployeesById = async (req, res) => {
     try {
         const { id } = req.params;
-
-        const employeesById = await Employees.findById(id);
+        const employeesById = await Employees.findById(id).populate("role");
         if (!employeesById) {
             return res.status(404).json({ message: "Employee not found" });
         }
@@ -31,8 +34,15 @@ const getEmployeesById = async (req, res) => {
 const patchEmployeeContent = async (req, res) => {
     try {
         const { id } = req.params;
-        
         const updateData = req.body;
+
+        // If role is being updated, sync the position name
+        if (updateData.role) {
+            const roleDoc = await JobRole.findById(updateData.role);
+            if (roleDoc) {
+                updateData.position = roleDoc.name;
+            }
+        }
 
         const employeeToUpdate = await Employees.findByIdAndUpdate(id, updateData, {
             new: true,
@@ -57,12 +67,14 @@ const createEmployee = async (req, res) => {
             nic,
             contactNumber,
             address,
-            position,
+            
+            // ✅ Fix: We now receive 'role' (The ID)
+            role, 
+            
             salary,
             joiningDate,
             isActived = true,
             remarks,
-            // 👇 NEW FIELDS MUST BE ADDED HERE
             allowanceMeal,
             allowanceMedical,
             allowanceAttendance,
@@ -70,9 +82,20 @@ const createEmployee = async (req, res) => {
             rateOT,
             rateDoubleOT,
             etfRate,
-            avatar // Don't forget the image!
+            avatar 
         } = req.body;
 
+        // 1. Validate Role
+        if (!role) {
+            return res.status(400).json({ message: "Job Role is required" });
+        }
+
+        const jobRoleDoc = await JobRole.findById(role);
+        if (!jobRoleDoc) {
+            return res.status(400).json({ message: "Invalid Job Role ID" });
+        }
+
+        // 2. Create Employee
         const newEmployee = new Employees({
             employeeID,
             employeeName,
@@ -80,12 +103,16 @@ const createEmployee = async (req, res) => {
             nic,
             contactNumber,
             address,
-            position,
+            
+            // ✅ Save the Relation
+            role: jobRoleDoc._id,
+            // ✅ Auto-fill position string for legacy support/display
+            position: jobRoleDoc.name, 
+
             salary,
             joiningDate,
             isActived,
             remarks,
-            // 👇 AND MAPPED HERE
             allowanceMeal,
             allowanceMedical,
             allowanceAttendance,
@@ -101,6 +128,7 @@ const createEmployee = async (req, res) => {
         res.status(201).json(newEmployee); 
 
     } catch (error) {
+        console.error("Create Employee Error:", error);
         res.status(500).json({ message: error.message });
     }
 };

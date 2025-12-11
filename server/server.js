@@ -16,6 +16,7 @@ const inventoryReportRoutes = require('./routes/inventoryReport.routes');
 const emailRoutes = require('./routes/email.routes');
 const reportsRoutes = require('./routes/reports.routes');
 const runDailyReport = require('./utils/dailyReports');
+const jobRoleRoutes = require('./routes/jobRole.Routes');
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use('/api/reports/employees', employeeReportRoutes);
 app.use('/api/reports/inventory', inventoryReportRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/workforce/job-roles', jobRoleRoutes);
 
 app.use((err, req, res, next) => {
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;

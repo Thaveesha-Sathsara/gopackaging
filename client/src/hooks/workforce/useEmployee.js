@@ -7,6 +7,19 @@ const ROUTE = "/api/workforce/employee";
 export const useEmployee = (id) => {
     const queryClient = useQueryClient();
 
+    const handleError = (message, err) => {
+        console.error(message, err.response?.data || err);
+        // ✅ FIX: Check for 'message' (from your controller) OR 'error'
+        const errorDetails = err.response?.data?.message || err.response?.data?.error || "Unknown error occurred.";
+        
+        const newMessage = `
+            <span style="color: gray; font-size: 18px;">${message}</span><br>
+            <span style="color: red; font-size: 20px;">${errorDetails}</span>
+        `;
+        errorAlert("Error", newMessage);
+    };
+
+    // Fetch All Employees
     const { data: employees, isLoading: isLoadingAll } = useQuery({
         queryKey: ["Employees"],
         queryFn: async () => {
@@ -18,31 +31,29 @@ export const useEmployee = (id) => {
                 throw error;
             }
         },
-        stableTime: 1000 * 60 * 5,
-        enabled: !id,
+        staleTime: 1000 * 60 * 5,
+        enabled: !id, // Only fetch list if NO id is provided
         retry: 3,
-        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
 
-    //fetch a single employee by mongoID
+    // Fetch Single Employee
     const { data: employee, isLoading: isLoadingSingle } = useQuery({
         queryKey: ["Employee", id],
         queryFn: async () => {
             try {
-                console.log(`Fecthing employee with ID ${id} from:`, `${ROUTE}/${id}`);
-                const reponse = await axiosInstance.get(`${ROUTE}/${id}`);
-                return reponse.data;
+                const response = await axiosInstance.get(`${ROUTE}/${id}`);
+                return response.data;
             } catch (error) {
                 handleError("Error fetching single employee.", error);
                 throw error;
             }
         },
-        enabled: !!id, // Only run this query if an ID is provided
+        enabled: !!id, 
         retry: 3,
-        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
 
-    const { mutate: createEmployee } = useMutation({
+    // ✅ CREATE: Use mutateAsync so we can await it in the UI
+    const { mutateAsync: createEmployee } = useMutation({
         mutationFn: async (data) => {
             try {
                 const response = await axiosInstance.post(`${ROUTE}/`, data);
@@ -54,19 +65,16 @@ export const useEmployee = (id) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries(["Employees"]);
-            queryClient.invalidateQueries(["Employee"]);
         },
     });
 
-    const { mutate: patchEmployee } = useMutation({
+    // ✅ PATCH: Use mutateAsync
+    const { mutateAsync: patchEmployee } = useMutation({
         mutationFn: async (data) => {
-            console.log("Called patchEmployee with ID:", id);
-            console.log("Update data:", data);
             try {
-                const reponse = await axiosInstance.patch(`${ROUTE}/${id}`, data);
-                return reponse.data;
+                const response = await axiosInstance.patch(`${ROUTE}/${id}`, data);
+                return response.data;
             } catch (err) {
-                console.error("Error in patchEmployee:", err);
                 handleError("Error patching employee.", err);
                 throw err;
             }
@@ -77,26 +85,8 @@ export const useEmployee = (id) => {
         },
     });
     
-    const { mutate: updateEmployee } = useMutation({
-        mutationFn: async (updateData) => {
-            console.log("Called updateEmployee with ID:", id);
-            console.log("Update data:", updateData);
-            try {
-                const response = await axiosInstance.put(`${ROUTE}/${id}`, updateData);
-                return response.data;
-            } catch (err) {
-                console.error("Error in updateEmployee:", err);
-                handleError("Error updting employee.", err);
-                throw err;
-            }
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries(["Employees"]);
-            queryClient.invalidateQueries(["Employee"]);
-        },
-    });
-
-    const { mutate: deleteEmployee } = useMutation({
+    // ✅ DELETE: Use mutateAsync
+    const { mutateAsync: deleteEmployee } = useMutation({
         mutationFn: async (id) => {
             try {
                 const response = await axiosInstance.delete(`${ROUTE}/${id}`);
@@ -108,19 +98,8 @@ export const useEmployee = (id) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries(["Employees"]);
-            queryClient.invalidateQueries(["Employee"]);
         },
     });
-
-    const handleError = (message, err) => {
-        console.error(message, err.response?.data || err);
-        const errorDetails = err.response?.data?.error || "Unknown error occurred.";
-        const newMessage = `
-<span style="color: gray; font-size: 18px;">${message}</span><br>
-<span style="color: red; font-size: 20px;">${errorDetails}</span>
-`;
-        errorAlert("Error", newMessage);
-    };
 
     return {
         employees,
@@ -128,7 +107,6 @@ export const useEmployee = (id) => {
         isLoading: id ? isLoadingSingle : isLoadingAll,
         createEmployee,
         patchEmployee,
-        updateEmployee,
         deleteEmployee,
     };
 };

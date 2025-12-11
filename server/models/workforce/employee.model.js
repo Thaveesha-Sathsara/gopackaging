@@ -12,7 +12,10 @@ const employeeSchema = new mongoose.Schema(
         //contact and work
         contactNumber: { type: String },
         address: { type: String },
-        position: { type: String },
+        
+        role: { type: mongoose.Schema.Types.ObjectId, ref: "JobRole", required: true },
+        position: { type: String }, 
+
         joiningDate: { type: Date, default: null },
         isActived: { type: Boolean, default: true },
 

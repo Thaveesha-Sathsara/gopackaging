@@ -10,14 +10,15 @@ const normalizeDate = (dateString) => {
     return date;
 };
 
-// 
+// ✅ UPDATED: Accepts an 'options' object to control logic based on Role
+const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday, options = {}) => {
+    // Default options: Assume OT is allowed unless specified otherwise
+    const { allowOvertime = true } = options;
 
-const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
     if (!startTimeStr || !endTimeStr) {
         return { normalHours: 0, otHours: 0, doubleOtHours: 0, lostHours: 0 };
     }
 
-    // Helper to convert "08:30" to 8.5
     const toDecimal = (time) => {
         const [h, m] = time.split(":").map(Number);
         return h + m / 60;
@@ -26,26 +27,21 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
     let actualStart = toDecimal(startTimeStr);
     let actualEnd = toDecimal(endTimeStr);
 
-    // ✅ FIX: HANDLE MIDNIGHT CROSSING
-    // If End Time is less than Start Time (e.g., Start 20:00, End 05:00),
-    // it means the shift ended the next day. Add 24 hours to End Time.
+    // ✅ FIX: Handle Midnight Crossing (e.g. 20:00 to 05:00)
     if (actualEnd < actualStart) {
         actualEnd += 24;
     }
 
     // --- DEFINE SHIFT RULES ---
-    // We determine the shift type based on the Start Time.
-    // If they start after 12:00 PM (12.0), we assume it's a Night Shift.
-    
     let SHIFT_START_TIME, SHIFT_END_TIME, BUFFER_LIMIT;
 
     if (actualStart >= 12.0) {
-        // 🌙 NIGHT SHIFT CONFIG
+        // 🌙 NIGHT SHIFT CONFIG (Starts after 12 PM)
         SHIFT_START_TIME = 20.0; // 8:00 PM
         SHIFT_END_TIME = 29.0;   // 5:00 AM (24 + 5)
-        BUFFER_LIMIT = 29.5;     // 5:30 AM (OT starts after this)
+        BUFFER_LIMIT = 29.5;     // 5:30 AM
     } else {
-        // ☀️ DAY SHIFT CONFIG
+        // ☀️ DAY SHIFT CONFIG (Starts before 12 PM)
         SHIFT_START_TIME = 8.0;  // 8:00 AM
         SHIFT_END_TIME = 17.0;   // 5:00 PM
         BUFFER_LIMIT = 17.5;     // 5:30 PM
@@ -55,12 +51,10 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
     let lostHours = 0; 
 
     // 1. APPLY START TIME ROUNDING (LATE PENALTY)
-    // Works for both: 8:15->9:00 OR 20:15->21:00
     if (actualStart <= SHIFT_START_TIME) {
         effectiveStart = SHIFT_START_TIME; 
     } else {
         effectiveStart = Math.ceil(actualStart);
-        // Calculate penalty only on normal days
         if (!isHolidayOrSunday) {
              lostHours = effectiveStart - actualStart;
         }
@@ -68,10 +62,19 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
 
     // 2. CHECK: IS IT A HOLIDAY OR SUNDAY?
     if (isHolidayOrSunday) {
-        // Double OT applies to the entire duration worked
         let effectiveEnd = actualEnd;
         let duration = Math.max(0, effectiveEnd - effectiveStart);
         
+        // ✅ ROLE CHECK: If role doesn't allow OT, pay as Normal Hours, not Double OT.
+        if (!allowOvertime) {
+             return {
+                normalHours: parseFloat(duration.toFixed(2)), 
+                otHours: 0,
+                doubleOtHours: 0,
+                lostHours: 0 
+            };
+        }
+
         return {
             normalHours: 0,
             otHours: 0,
@@ -79,30 +82,30 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
             lostHours: 0 
         };
     } else {
-        // --- NORMAL WORKING DAY LOGIC (Day or Night) ---
-        
+        // --- NORMAL WORKING DAY LOGIC ---
         let effectiveNormalEnd;
         let effectiveOtEnd;
 
-        // Apply the "Free Gap" Buffer Rule
+        // Apply "Free Gap" Buffer Rule
         if (actualEnd <= BUFFER_LIMIT) {
-            // User left during the gap (e.g., 5:15 AM). 
-            // We clamp payment to Shift End (5:00 AM). No OT.
             effectiveNormalEnd = SHIFT_END_TIME;
             effectiveOtEnd = SHIFT_END_TIME;
         } else {
-            // User stayed past the gap (e.g., 6:00 AM).
-            // OT applies.
             effectiveNormalEnd = SHIFT_END_TIME;
             effectiveOtEnd = actualEnd;
         }
 
-        // Calculate Durations
         let normalHours = Math.max(0, effectiveNormalEnd - effectiveStart);
         
-        // OT is calculated based on time worked AFTER the shift end
-        let otHours = Math.max(0, effectiveOtEnd - SHIFT_END_TIME);
+        // Calculate potential OT
+        let rawOtHours = Math.max(0, effectiveOtEnd - SHIFT_END_TIME);
         
+        // ✅ ROLE CHECK: Force OT to 0 if not allowed
+        let otHours = allowOvertime ? rawOtHours : 0;
+        
+        // If OT is disabled but they worked extra, you might want to add rawOtHours to normalHours 
+        // depending on company policy. Here we assume strictly "No OT Pay".
+
         return { 
             normalHours: parseFloat(normalHours.toFixed(2)), 
             otHours: parseFloat(otHours.toFixed(2)),
@@ -198,38 +201,45 @@ const createDailyAttendance = async (req, res) => {
         endOfDay.setUTCHours(23, 59, 59, 999);
 
         const holidayRecord = await Holiday.findOne({ 
-            date: { 
-                $gte: startOfDay, 
-                $lte: endOfDay 
-            } 
+            date: { $gte: startOfDay, $lte: endOfDay } 
         });
         
         const isHoliday = !!holidayRecord;
         const isDoubleOtDay = isSunday || isHoliday; 
 
-        // 2. Fetch Employees for Rates
+        // 2. Fetch Employees AND THEIR ROLES
         const employeeIds = records.map(r => r.employeeId);
-        const employees = await Employee.find({ _id: { $in: employeeIds } });
+        
+        // ✅ POPULATE ROLE to get access to 'allowOvertime'
+        const employees = await Employee.find({ _id: { $in: employeeIds } })
+            .populate('role'); 
         
         const empMap = {};
         employees.forEach(emp => {
             empMap[emp._id.toString()] = {
                 salary: emp.salary || 0,        
                 rateOT: emp.rateOT || 0,        
-                rateDoubleOT: emp.rateDoubleOT || 0 
+                rateDoubleOT: emp.rateDoubleOT || 0,
+                // ✅ Extract Rule: Default to true if role is missing/deleted
+                allowOvertime: emp.role ? emp.role.allowOvertime : true 
             };
         });
 
         const operations = records.map(record => {
-            const empData = empMap[record.employeeId] || { salary: 0, rateOT: 0 };
+            const empData = empMap[record.employeeId] || { salary: 0, rateOT: 0, allowOvertime: true };
             
             let normalHours = 0, otHours = 0, doubleOtHours = 0, totalHours = 0;
             let normalPay = 0, otPay = 0, doubleOtPay = 0, dailyPay = 0;
             let lateDeduction = 0;
 
             if (record.status === "Present" && record.startTime && record.endTime) {
-                // ✅ All complexity is detected automatically inside here
-                const calc = calculateTimeLogic(record.startTime, record.endTime, isDoubleOtDay);
+                // ✅ PASS ROLE CONFIGURATION
+                const calc = calculateTimeLogic(
+                    record.startTime, 
+                    record.endTime, 
+                    isDoubleOtDay,
+                    { allowOvertime: empData.allowOvertime }
+                );
                 
                 normalHours = calc.normalHours;
                 otHours = calc.otHours;
@@ -280,7 +290,7 @@ const createDailyAttendance = async (req, res) => {
         const result = await Attendance.bulkWrite(operations);
         
         const message = isDoubleOtDay 
-            ? `Saved. Treated as ${isSunday ? "Sunday" : "Holiday"}: Double OT Applied.` 
+            ? `Saved. Treated as ${isSunday ? "Sunday" : "Holiday"}: Double OT Applied (if eligible).` 
             : "Saved. Normal working day.";
 
         res.status(201).json({ message, result });
