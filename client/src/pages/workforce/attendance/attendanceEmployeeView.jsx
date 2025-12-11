@@ -6,27 +6,37 @@ import DataTable from "@/src/components/DataTable";
 import { Button } from "@/src/components/ui/button";
 import { ArrowLeft, CalendarDays, Clock, AlertTriangle } from "lucide-react";
 
-// Helper: Calculate actual duration (End - Start)
+// ✅ FIX 1: Calculate actual duration handling midnight (e.g. 20:00 -> 05:00)
 const calculateActualDuration = (startTime, endTime) => {
     if (!startTime || !endTime) return 0;
     const [sh, sm] = startTime.split(':').map(Number);
     const [eh, em] = endTime.split(':').map(Number);
     
     const startDecimal = sh + sm / 60;
-    const endDecimal = eh + em / 60;
+    let endDecimal = eh + em / 60;
     
-    let diff = endDecimal - startDecimal;
-    if (diff < 0) diff = 0; // Handle errors
+    // Handle Next Day
+    if (endDecimal < startDecimal) {
+        endDecimal += 24;
+    }
     
-    return diff.toFixed(2);
+    return (endDecimal - startDecimal).toFixed(2);
 };
 
-// Helper: Calculate Late Hours (Time past 8:00 AM)
+// ✅ FIX 2: Detect Day vs Night Shift for "Late" calc
 const getLateDuration = (startTime) => {
     if (!startTime) return 0;
     const [h, m] = startTime.split(':').map(Number);
     const arrivalTime = h + m / 60;
-    const workStartTime = 8.0; // 8:00 AM
+
+    // --- LOGIC ---
+    // If arrival is AFTER 12:00 PM (12.0), assume Night Shift (Target: 20:00 / 8 PM)
+    // If arrival is BEFORE 12:00 PM, assume Day Shift (Target: 08:00 / 8 AM)
+    let workStartTime = 8.0; 
+
+    if (arrivalTime >= 12.0) {
+        workStartTime = 20.0; // 8:00 PM
+    }
 
     if (arrivalTime > workStartTime) {
         const diff = arrivalTime - workStartTime;
@@ -82,7 +92,7 @@ const AttendanceEmployeeView = () => {
             cell: ({ row }) => <div className="font-mono text-xs">{row.getValue("endTime")}</div>
         },
         {
-            // ✅ NEW: Actual Duration (End - Start)
+            // Actual Duration (End - Start)
             id: "actualDuration",
             header: "Duration",
             cell: ({ row }) => {
@@ -93,7 +103,7 @@ const AttendanceEmployeeView = () => {
             }
         },
         {
-            // ✅ NEW: Late Arrivals (Red Warning)
+            // Late Arrivals (Red Warning)
             id: "lateArrival",
             header: "Late Arrivals",
             cell: ({ row }) => {
@@ -112,7 +122,7 @@ const AttendanceEmployeeView = () => {
             }
         },
         {
-            // ✅ UPDATED: Total Hours (Mapped to normalHours for Payroll)
+            // UPDATED: Total Hours (Mapped to normalHours for Payroll)
             accessorKey: "normalHours",
             header: "Payroll Hours",
             cell: ({ row }) => {
@@ -143,7 +153,7 @@ const AttendanceEmployeeView = () => {
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
-                        <h1 className="text-2x2 font-bold">{employee.name}</h1>
+                        <h1 className="text-2xl font-bold">{employee.name}</h1>
                         <p className="text-gray-500">{employee.id} • {employee.position}</p>
                     </div>
                 </div>
@@ -187,15 +197,12 @@ const AttendanceEmployeeView = () => {
             </div>
             
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Attendance History</h1>
-                    <p className="text-sm text-gray-500 mt-1">Detailed daily attendance records for the selected period.</p>
+                <div className="mb-4">
+                    <h1 className="text-xl font-bold text-gray-900">Attendance History</h1>
+                    <p className="text-sm text-gray-500">Detailed daily attendance records.</p>
                 </div>
             
-
-            {/* Table */}
-            
-                <Card className="border-none shadow-none bg-transparent">
+                <Card className="border-none shadow-none bg-transparent flex-1 overflow-hidden">
                      <DataTable 
                         columns={columns} 
                         data={records} 

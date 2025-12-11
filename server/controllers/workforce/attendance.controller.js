@@ -10,27 +10,57 @@ const normalizeDate = (dateString) => {
     return date;
 };
 
+// 
+
 const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
     if (!startTimeStr || !endTimeStr) {
         return { normalHours: 0, otHours: 0, doubleOtHours: 0, lostHours: 0 };
     }
 
+    // Helper to convert "08:30" to 8.5
     const toDecimal = (time) => {
         const [h, m] = time.split(":").map(Number);
         return h + m / 60;
     };
 
-    const actualStart = toDecimal(startTimeStr);
-    const actualEnd = toDecimal(endTimeStr);
+    let actualStart = toDecimal(startTimeStr);
+    let actualEnd = toDecimal(endTimeStr);
+
+    // ✅ FIX: HANDLE MIDNIGHT CROSSING
+    // If End Time is less than Start Time (e.g., Start 20:00, End 05:00),
+    // it means the shift ended the next day. Add 24 hours to End Time.
+    if (actualEnd < actualStart) {
+        actualEnd += 24;
+    }
+
+    // --- DEFINE SHIFT RULES ---
+    // We determine the shift type based on the Start Time.
+    // If they start after 12:00 PM (12.0), we assume it's a Night Shift.
+    
+    let SHIFT_START_TIME, SHIFT_END_TIME, BUFFER_LIMIT;
+
+    if (actualStart >= 12.0) {
+        // 🌙 NIGHT SHIFT CONFIG
+        SHIFT_START_TIME = 20.0; // 8:00 PM
+        SHIFT_END_TIME = 29.0;   // 5:00 AM (24 + 5)
+        BUFFER_LIMIT = 29.5;     // 5:30 AM (OT starts after this)
+    } else {
+        // ☀️ DAY SHIFT CONFIG
+        SHIFT_START_TIME = 8.0;  // 8:00 AM
+        SHIFT_END_TIME = 17.0;   // 5:00 PM
+        BUFFER_LIMIT = 17.5;     // 5:30 PM
+    }
 
     let effectiveStart;
     let lostHours = 0; 
 
-    // 1. APPLY START TIME ROUNDING
-    if (actualStart <= 8.0) {
-        effectiveStart = 8.0; 
+    // 1. APPLY START TIME ROUNDING (LATE PENALTY)
+    // Works for both: 8:15->9:00 OR 20:15->21:00
+    if (actualStart <= SHIFT_START_TIME) {
+        effectiveStart = SHIFT_START_TIME; 
     } else {
         effectiveStart = Math.ceil(actualStart);
+        // Calculate penalty only on normal days
         if (!isHolidayOrSunday) {
              lostHours = effectiveStart - actualStart;
         }
@@ -38,6 +68,7 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
 
     // 2. CHECK: IS IT A HOLIDAY OR SUNDAY?
     if (isHolidayOrSunday) {
+        // Double OT applies to the entire duration worked
         let effectiveEnd = actualEnd;
         let duration = Math.max(0, effectiveEnd - effectiveStart);
         
@@ -48,23 +79,29 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday) => {
             lostHours: 0 
         };
     } else {
-        // --- NORMAL DAY LOGIC ---
-        const WORK_END_TIME = 17.0; // 5:00 PM
-        const BUFFER_LIMIT = 17.5;  // 5:30 PM
+        // --- NORMAL WORKING DAY LOGIC (Day or Night) ---
         
         let effectiveNormalEnd;
         let effectiveOtEnd;
 
+        // Apply the "Free Gap" Buffer Rule
         if (actualEnd <= BUFFER_LIMIT) {
-            effectiveNormalEnd = WORK_END_TIME;
-            effectiveOtEnd = WORK_END_TIME;
+            // User left during the gap (e.g., 5:15 AM). 
+            // We clamp payment to Shift End (5:00 AM). No OT.
+            effectiveNormalEnd = SHIFT_END_TIME;
+            effectiveOtEnd = SHIFT_END_TIME;
         } else {
-            effectiveNormalEnd = WORK_END_TIME;
+            // User stayed past the gap (e.g., 6:00 AM).
+            // OT applies.
+            effectiveNormalEnd = SHIFT_END_TIME;
             effectiveOtEnd = actualEnd;
         }
 
+        // Calculate Durations
         let normalHours = Math.max(0, effectiveNormalEnd - effectiveStart);
-        let otHours = Math.max(0, effectiveOtEnd - WORK_END_TIME);
+        
+        // OT is calculated based on time worked AFTER the shift end
+        let otHours = Math.max(0, effectiveOtEnd - SHIFT_END_TIME);
         
         return { 
             normalHours: parseFloat(normalHours.toFixed(2)), 
@@ -80,8 +117,6 @@ const getAttendanceSummary = async (req, res) => {
         const { startDate, endDate } = req.query;
         if (!startDate || !endDate) return res.status(400).json({ message: "Dates required" });
 
-        // ✅ FIX: Use UTC Hours to match database storage
-        // setHours (Local) was causing issues if server TZ was behind UTC
         const start = new Date(startDate);
         start.setUTCHours(0, 0, 0, 0); 
 
@@ -152,7 +187,6 @@ const createDailyAttendance = async (req, res) => {
         const { date, records } = req.body;
         if (!date || !records) return res.status(400).json({ message: "Invalid data" });
 
-        // This stores the date as UTC Midnight
         const normalizedDate = normalizeDate(date);
 
         // 1. CHECK DAY TYPE
@@ -194,6 +228,7 @@ const createDailyAttendance = async (req, res) => {
             let lateDeduction = 0;
 
             if (record.status === "Present" && record.startTime && record.endTime) {
+                // ✅ All complexity is detected automatically inside here
                 const calc = calculateTimeLogic(record.startTime, record.endTime, isDoubleOtDay);
                 
                 normalHours = calc.normalHours;
@@ -263,7 +298,6 @@ const getEmployeeAttendanceHistory = async (req, res) => {
         const employee = await Employee.findById(id);
         if (!employee) return res.status(404).json({ message: "Not found" });
 
-        // ✅ FIX: Use UTC Hours here as well
         const start = new Date(startDate);
         start.setUTCHours(0, 0, 0, 0);
 

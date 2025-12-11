@@ -10,25 +10,24 @@ import {
 } from "@/src/components/ui/select";
 
 // --- Helpers ---
-const parseTime = (timeStr) => {
-    if (!timeStr) return null;
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    const date = new Date();
-    date.setHours(hours, minutes, 0, 0);
-    return date;
-};
 
+// ✅ FIX: Robust Total Hours Calculation with Midnight Crossing
 const calculateTotalHours = (startTime, endTime) => {
-    const start = parseTime(startTime);
-    const end = parseTime(endTime);
+    if (!startTime || !endTime) return 0;
 
-    if (!start || !end || end <= start) {
-        return 0;
+    const [sh, sm] = startTime.split(':').map(Number);
+    const [eh, em] = endTime.split(':').map(Number);
+
+    const startDecimal = sh + sm / 60;
+    let endDecimal = eh + em / 60;
+
+    // If End is less than Start (e.g., 20:00 to 05:00), assume next day
+    if (endDecimal < startDecimal) {
+        endDecimal += 24;
     }
-    const diffMs = end - start;
-    const diffMinutes = diffMs / 1000 / 60;
-    const totalHours = diffMinutes / 60;
-    return parseFloat(totalHours.toFixed(2));
+
+    const duration = endDecimal - startDecimal;
+    return parseFloat(duration.toFixed(2));
 };
 
 // --- 1. Status Cell Component ---
@@ -65,7 +64,6 @@ const StatusCell = ({ control, index, setValue }) => {
 
 // --- 2. Start Time Cell Component ---
 const StartTimeCell = ({ control, index }) => {
-    // ✅ Valid: Hook called inside a component
     const status = useWatch({
         control,
         name: `records.${index}.status`,
@@ -90,7 +88,6 @@ const StartTimeCell = ({ control, index }) => {
 
 // --- 3. End Time Cell Component ---
 const EndTimeCell = ({ control, index, setValue }) => {
-    // ✅ Valid: Hooks called inside a component
     const status = useWatch({
         control,
         name: `records.${index}.status`,
@@ -113,7 +110,7 @@ const EndTimeCell = ({ control, index, setValue }) => {
                     className={`w-32 transition-colors ${isLeave ? "bg-gray-100 opacity-50 cursor-not-allowed" : ""}`}
                     onBlur={(e) => {
                         field.onBlur(e);
-                        // Calc logic
+                        // ✅ Trigger Calculation on Blur
                         if (!isLeave && startTime && e.target.value) {
                             const totalHours = calculateTotalHours(startTime, e.target.value);
                             setValue(`records.${index}.totalHours`, totalHours);
@@ -127,7 +124,6 @@ const EndTimeCell = ({ control, index, setValue }) => {
 
 // --- 4. Total Hours Cell Component ---
 const TotalHoursCell = ({ control, index }) => {
-    // ✅ Valid: Hooks called inside a component
     const totalHours = useWatch({
         control,
         name: `records.${index}.totalHours`
@@ -138,7 +134,6 @@ const TotalHoursCell = ({ control, index }) => {
     });
 
     if (status === "Leave") {
-        // Replaced <Badge> with a simple Tailwind span
         return (
             <span className="inline-flex items-center rounded-md border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-700">
                 On Leave
@@ -146,7 +141,7 @@ const TotalHoursCell = ({ control, index }) => {
         );
     }
 
-    return <span className="font-medium ml-2">{totalHours || 0}</span>;
+    return <span className="font-medium ml-2">{totalHours || 0} Hrs</span>;
 };
 
 // --- Main Columns Definition ---
