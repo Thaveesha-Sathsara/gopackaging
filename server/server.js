@@ -66,7 +66,7 @@ app.use(async (err, req, res, next) => {
 
     // The exception filter
     // Do not trigger the AI for standard expected errors like missing logins
-    if (err.message.includes('Not Authorized') || err.message.includes('jwt')) {
+    if (err.message.includes('Not authorized') || err.message.includes('jwt')) {
         console.log(`[ROUTER] Standard Auth Error ignored by AI. Returning 401.`);
         return res.status(401).json({ message: "Not authorized, please log in." });
     }
