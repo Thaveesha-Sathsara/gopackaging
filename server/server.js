@@ -21,6 +21,7 @@ const { applyHotPatch } = require('./utils/hotPatcher');
 const path = require('path');
 const fs = require('fs');
 const { validateAST } = require('./utils/symbolicValidator');
+const { extractBrokenFunctionCode } = require('./utils/codeExtractor');
 
 
 dotenv.config();
@@ -95,6 +96,9 @@ app.use(async (err, req, res, next) => {
             if (!fs.existsSync(ipcDir)) {
                 fs.mkdirSync(ipcDir, { recursive: true });
             }
+
+            const specificBrokenFunction = extractBrokenFunction(brokenCode, err.stack);
+            console.log(`\n[ISOLATED CODE BLOCK]:\n${specificBrokenFunction}\n`);
 
             // Wirte the crash to shared memory
             fs.writeFileSync(crashFilePath, JSON.stringify({
