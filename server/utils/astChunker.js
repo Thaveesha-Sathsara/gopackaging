@@ -9,7 +9,7 @@ function extractBrokenFunction(sourceCode, errorStack) {
         if (!match) return sourceCode;
 
         const errorLine = parseInt(match[1], 10);
-        console.log(`[CHUNKER] Crach isolated at line ${error.line}. Extractioning function block...`);
+        console.log(`[CHUNKER] Crach isolated at line ${errorLine}. Extractioning function block...`);
 
         // Parse the code with location data enabled so can see the line numbers
         const ast = acorn.parse(sourceCode, { ecmaVersion: 2022, locations: true, sourceType: 'module' });

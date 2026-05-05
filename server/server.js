@@ -21,7 +21,7 @@ const { applyHotPatch } = require('./utils/hotPatcher');
 const path = require('path');
 const fs = require('fs');
 const { validateAST } = require('./utils/symbolicValidator');
-const { extractBrokenFunctionCode } = require('./utils/codeExtractor');
+const { extractBrokenFunction } = require('./utils/astChunker');
 
 
 dotenv.config();
@@ -73,7 +73,27 @@ app.use(async (err, req, res, next) => {
     }
 
     console.log(`\n[CRASH DETECTED] Route failed: ${err.message}`);
-    const targetFile = path.join(__dirname, 'controllers', 'inventory', 'inventory.controller.js');
+    // The dynamic stack trace parser
+    let targetFile = null;
+    const stackLines = err.stack.split('\n');
+
+    // Scan the stack trace to find the exact file that crashed
+    for (let line of stackLines) {
+        if (line.includes(__dirname) && !line.includes('node_modules')) {
+            const match = line.match(/\((.*):\d+:\d+\)/) || line.match(/at (.*):\d+:\d+/);
+            if (match && match[1]) {
+                targetFile = match[1];
+                break;
+            }
+        }
+    }
+
+    if (!targetFile || !fs.existsSync(targetFile)) {
+        console.log(`[ROUTER] Could not isolate local file. Routing to standard 500 error.`);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    console.log(`[TARGET ACQUIRED] Dynamic fault isolated at: ${targetFile}`);
     const brokenCode = fs.readFileSync(targetFile, 'utf8');
 
     let attempts = 0;

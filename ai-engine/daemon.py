@@ -35,12 +35,14 @@ class CrashHandler(FileSystemEventHandler):
 
             # The surgical prompt
             prompt = f"""Fix this specific JavaScript function that threw this error: {data['error']}.
-             Output ONLY the corrected function code. No markdown. No explanations.
+             You MUST wrap your exact fixed function between [START] and [END] tags. Do not write anything after that [END] tag. Do not write markdown.
              
              BROKEN FUNCTION:
              {data['code_chunk']}
 
-             FIXED FUNCTION:"""
+             FIXED FUNCTION:
+             [START]
+             """
             
             inputs = tokenizer(prompt, return_tensors="pt")
 
@@ -51,7 +53,15 @@ class CrashHandler(FileSystemEventHandler):
                                      pad_token_id=tokenizer.eos_token_id)
             
             response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-            fixed_code = response.split("FIXED FUNCTION:")[1].strip()
+
+            # The delimiter-based extraction
+            try:
+                after_start = response.split("[START]")[1]
+                fixed_code = after_start.split("[END]")[0].strip()
+                print("[SYMBIOTE] Sliced AI output using [END] delimiter.")
+            except IndexError:
+                print("[SYMBIOTE] AI Forgot delimiters. Attempting raw extraction.")
+                fixed_code = response.split("FIXED FUNCTION:")[1].replace("[START]", "").strip()
 
             execution_time = time.time() - start_time
             print(f"[SYMBIOTE] Patch synthesized in {execution_time:.2f} seconds.")
