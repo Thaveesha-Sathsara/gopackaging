@@ -4,7 +4,7 @@ import os
 import torch
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from transformers import AutoModelForCasualLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # The shared memory path
 IPC_DIR = "../ipc_link"
@@ -14,7 +14,7 @@ FIX_FILE = os.path.join(IPC_DIR, "fix.json")
 print ("[SYMBIOTE] Booting Background Daemon...")
 model_name = "Qwen/Qwen2.5-Coder-1.5B"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCasualLM.from_pretrained(
+model = AutoModelForCausalLM.from_pretrained(
     model_name,
     torch_dtype=torch.float32,
     device_map="cpu"
