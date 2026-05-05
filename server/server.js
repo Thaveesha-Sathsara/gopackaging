@@ -88,20 +88,42 @@ app.use(async (err, req, res, next) => {
         console.log(`[AI DIAGNOSTICS] Transmitting payload to Python Engine...`);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/diagnose-and-patch', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    error: aiPromptMessage, // This updates if the Bouncer rejects it
-                    code: brokenCode
-                })
+            const ipcDir = path.join(__dirname, 'ipc_link');
+            const crashFilePath = path.join(ipcDir, 'crash.json');
+            const fixFilePath = payrollAdjustmentRoutes.join(ipcDir, 'fix.json');
+
+            // Wirte the crash to shared memory
+            fs.writeFileSync(crashFilePath, JSON.stringify({
+                error: aiPromptMessage,
+                file: targetFile,
+                code_chunk: brokenCode
+            }));
+
+            console.log(`[IPC] Memory flag written. Awaiting Python Daemon...`);
+
+            // The 10-millisecond polling loop
+            const aiData = await new Promise((resolve, reject) => {
+                let elapsed = 0;
+                const timeoutLimit = 15000;
+
+                const interval = setInterval(() => {
+                    if (fs.existsSync(fixFilePath)) {
+                        clearInterval(interval);
+                        const data = JSON.parse(fs.readFileSync(fixFilePath, 'utf8'));
+                        fs.unlinkSync(fixFilePath);
+                        resolve(data);
+                    }
+
+                    elapsed += 10;
+                    if (elapsed > timeoutLimit) {
+                        clearInterval(interval);
+                        reject(new Error("AI Daemon timeout. Generation took too long."));
+                    }
+                }, 10);
             });
 
-            if (!response.ok) throw new Error(`Python API responded with status: ${response.status}`);
-
-            const aiData = await response.json();
             const rawAiOutput = aiData.fixed_code; 
-            console.log(`[AI METRICS] Fix generated in ${aiData.time_taken} seconds.`);
+            console.log(`[IPC] AI Patch received in ${aiData.time_taken} seconds.`);
 
             // The bouncer intevenes
             const approvedPatch = validateAST(rawAiOutput);
