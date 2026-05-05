@@ -20,6 +20,7 @@ const jobRoleRoutes = require('./routes/jobRole.Routes');
 const { applyHotPatch } = require('./utils/hotPatcher');
 const path = require('path');
 const fs = require('fs');
+const { validateAST } = require('./utils/symbolicValidator');
 
 
 dotenv.config();
@@ -62,57 +63,92 @@ app.use('/api/workforce/job-roles', jobRoleRoutes);
 // });
 
 app.use(async (err, req, res, next) => {
-    console.log(`\n[CRASH DETECTED] Route failed: ${err.message}`);
-    
-    const targetFile = path.join(__dirname, 'controllers', 'inventory', 'inventory.controller.js');
 
-    // Read the current, broken file from the hard drive to send to the AI
+    // The exception filter
+    // Do not trigger the AI for standard expected errors like missing logins
+    if (err.message.includes('Not Authorized') || err.message.includes('jwt')) {
+        console.log(`[ROUTER] Standard Auth Error ignored by AI. Returning 401.`);
+        return res.status(401).json({ message: "Not authorized, please log in." });
+    }
+
+    console.log(`\n[CRASH DETECTED] Route failed: ${err.message}`);
+    const targetFile = path.join(__dirname, 'controllers', 'inventory', 'inventory.controller.js');
     const brokenCode = fs.readFileSync(targetFile, 'utf8');
 
-    console.log(`Transmitting crash report to Python engine`);
+    let attempts = 0;
+    const maxAttempts = 3;
+    let isHealed = false;
+    
+    // Start with the original Node error
+    let aiPromptMessage = `Original Error: ${err.message}`;
 
-    try {
-        // The AI request hit local fastAPI server
-        const response = await fetch('http://127.0.0.1:8000/diagnose-and-patch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                error: err.message,
-                code: brokenCode,
-            })
-        });
+    while (attempts < maxAttempts && !isHealed) {
+        attempts++;
+        console.log(`\n[AUTONOMOUS LOOP] Attempt ${attempts} of ${maxAttempts}...`);
+        console.log(`[AI DIAGNOSTICS] Transmitting payload to Python Engine...`);
 
-        if (!response.ok) {
-            throw new Error(`Python API responded with status: ${response.status}`);
-        }
+        try {
+            const response = await fetch('http://127.0.0.1:8000/diagnose-and-patch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    error: aiPromptMessage, // This updates if the Bouncer rejects it
+                    code: brokenCode
+                })
+            });
 
-        const aiData = await response.json();
-        const realAiGeneratedFix = aiData.fixed_code;
+            if (!response.ok) throw new Error(`Python API responded with status: ${response.status}`);
 
-        console.log(`Fix generated in ${aiData.time_taken} seconds`);
+            const aiData = await response.json();
+            const rawAiOutput = aiData.fixed_code; 
+            console.log(`[AI METRICS] Fix generated in ${aiData.time_taken} seconds.`);
 
-        // Apply the hot patch with the AI's live code
-        const updateModule = applyHotPatch(targetFile, realAiGeneratedFix);
+            // The bouncer intevenes
+            const approvedPatch = validateAST(rawAiOutput);
 
-        if (updateModule) {
-            console.log(`Re-running request with patched memory`);
+            if (approvedPatch) {
+                console.log(`[BOUNCER] Patch approved. Breaking the loop.`);
+                
+                // Execute the hot-patch
+                const updateModule = applyHotPatch(targetFile, approvedPatch);
 
-            try {
-                // Force express to re-run the user's request
-                await updateModule.getRawMaterials(req, res, next);
-            } catch (retryErr) {
-                console.error("\nEven after patching, the request failed:", retryErr.message);
-                res.status(500).json({ error: "Retry failed after hot-patch" });
+                if (updateModule) {
+                    try {
+                        console.log(`[HEALING COMPLETE] Re-running paused HTTP request...`);
+                        await updateModule.getRawMaterials(req, res, next);
+                        isHealed = true; // If successful, stops the while loop
+                    } catch (retryErr) {
+                        console.error("\n[SECONDARY CRASH IN RE-RUN]:", retryErr.message);
+                        // If hit a new bug after patching. Feed this back to the AI
+                        aiPromptMessage = `You fixed the first error, but the new code threw this error: ${retryErr.message}. Fix this new error.`;
+                    }
+                } else {
+                    res.status(500).json({ error: "Hot-patch failed to apply to memory." });
+                    break;
+                }
+            } else {
+                 // If the bouncer rejected 
+                console.log(`[BOUNCER REJECTION] AI wrote unsafe or invalid code. Forcing retry.`);
+                
+                 // Update the prompt so the AI knows why it failed
+                aiPromptMessage = `Your last attempt failed Abstract Syntax Tree (AST) validation. 
+                 You either wrote invalid JavaScript, or tried to import forbidden modules like 'fs'.
+                 Do not hallucinate. Try again. Original Error: ${err.message}`;
             }
-        } else {
-            res.status(500).json({ error: "System crash. Self-healing failed" });
+
+        } catch (apiError) {
+            console.error(`[AI CONNECTION FAILED]`, apiError.message);
+            break; // Break the loop if the Python server is dead
         }
+    }
 
-    } catch (apiError) {
-        console.error(`\n Is the python server running?`, apiError.message);
-        res.status(500).json({ error: "Self-healing AI unreachable" });
-    }    
-
+    // If the loop finished all 3 attempts and didn't heal the system
+    if (!isHealed) {
+        console.log(`\n[FATAL] Autonomous Agent exhausted all ${maxAttempts} attempts. System self-healing failed.`);
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Self-healing AI failed to resolve the crash within attempt limits." });
+        }
+    }
 });
 
 const PORT = process.env.PORT || 5000;
