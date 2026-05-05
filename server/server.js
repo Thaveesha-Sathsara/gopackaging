@@ -90,7 +90,11 @@ app.use(async (err, req, res, next) => {
         try {
             const ipcDir = path.join(__dirname, 'ipc_link');
             const crashFilePath = path.join(ipcDir, 'crash.json');
-            const fixFilePath = payrollAdjustmentRoutes.join(ipcDir, 'fix.json');
+            const fixFilePath = path.join(ipcDir, 'fix.json');
+
+            if (!fs.existsSync(ipcDir)) {
+                fs.mkdirSync(ipcDir, { recursive: true });
+            }
 
             // Wirte the crash to shared memory
             fs.writeFileSync(crashFilePath, JSON.stringify({

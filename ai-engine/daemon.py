@@ -7,7 +7,7 @@ from watchdog.events import FileSystemEventHandler
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # The shared memory path
-IPC_DIR = "../ipc_link"
+IPC_DIR = "../server/ipc_link"
 CRASH_FILE = os.path.join(IPC_DIR, "crash.json")
 FIX_FILE = os.path.join(IPC_DIR, "fix.json")
 
