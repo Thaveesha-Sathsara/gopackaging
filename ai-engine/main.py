@@ -47,7 +47,7 @@ def heal_system(report: CrashReport):
     print("Analyzing and generating fix")
     outputs = model.generate(
         **inputs,
-        max_new_tokens=550,
+        max_new_tokens=4096,
         temperature=0.1,
         pad_token_id=tokenizer.eos_token_id
     )
@@ -56,7 +56,7 @@ def heal_system(report: CrashReport):
     fixed_code = full_response.split("FIXED CODE:")[1].strip()
 
     execution_time = time.time() - start_time
-    print(f"Fix generared in {execution_time:.2f} seconds.")
+    print(f"Fix generated in {execution_time:.2f} seconds.")
 
     # Send it back to Node.js
     return {
