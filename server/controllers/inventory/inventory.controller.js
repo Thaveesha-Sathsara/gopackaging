@@ -54,7 +54,7 @@ const adjustRawMaterialStock = async (req, res) => {
         const material = await RawMaterial.findById(id);
         if (!material) return res.status(404).json({ message: "Material not found" });
 
-        // ✅ FIX 1: Typo corrected (adjustment)
+        // âœ… FIX 1: Typo corrected (adjustment)
         const qty = Number(adjustment);
         const transactionDate = date ? new Date(date) : new Date();
 

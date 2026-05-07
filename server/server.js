@@ -120,11 +120,15 @@ app.use(async (err, req, res, next) => {
             const specificBrokenFunction = extractBrokenFunction(brokenCode, err.stack);
             console.log(`\n[ISOLATED CODE BLOCK]:\n${specificBrokenFunction}\n`);
 
+            if (fs.existsSync(crashFilePath)) {
+                fs.unlinkSync(crashFilePath);
+            }
+
             // Wirte the crash to shared memory
             fs.writeFileSync(crashFilePath, JSON.stringify({
                 error: aiPromptMessage,
                 file: targetFile,
-                code_chunk: brokenCode
+                code_chunk: specificBrokenFunction
             }));
 
             console.log(`[IPC] Memory flag written. Awaiting Python Daemon...`);
@@ -132,7 +136,7 @@ app.use(async (err, req, res, next) => {
             // The 10-millisecond polling loop
             const aiData = await new Promise((resolve, reject) => {
                 let elapsed = 0;
-                const timeoutLimit = 15000;
+                const timeoutLimit = 45000;
 
                 const interval = setInterval(() => {
                     if (fs.existsSync(fixFilePath)) {
@@ -158,9 +162,12 @@ app.use(async (err, req, res, next) => {
 
             if (approvedPatch) {
                 console.log(`[BOUNCER] Patch approved. Breaking the loop.`);
+
+                // Replace the exact broken chunk with the new fixed chunk
+                const fullHealedFile = brokenCode.replace(specificBrokenFunction, approvedPatch);
                 
                 // Execute the hot-patch
-                const updateModule = applyHotPatch(targetFile, approvedPatch);
+                const updateModule = applyHotPatch(targetFile, fullHealedFile);
 
                 if (updateModule) {
                     try {
