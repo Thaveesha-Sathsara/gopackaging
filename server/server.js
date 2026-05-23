@@ -22,6 +22,8 @@ const path = require('path');
 const fs = require('fs');
 const { validateAST } = require('./utils/symbolicValidator');
 const { extractBrokenFunction } = require('./utils/astChunker');
+const { getRepairPatch } = require('./utils/api_bridge');
+const { testPatch } = require('./utils/referee');
 
 
 dotenv.config();
@@ -73,6 +75,7 @@ app.use(async (err, req, res, next) => {
     }
 
     console.log(`\n[CRASH DETECTED] Route failed: ${err.message}`);
+
     // The dynamic stack trace parser
     let targetFile = null;
     const stackLines = err.stack.split('\n');
@@ -106,97 +109,58 @@ app.use(async (err, req, res, next) => {
     while (attempts < maxAttempts && !isHealed) {
         attempts++;
         console.log(`\n[AUTONOMOUS LOOP] Attempt ${attempts} of ${maxAttempts}...`);
-        console.log(`[AI DIAGNOSTICS] Transmitting payload to Python Engine...`);
 
         try {
-            const ipcDir = path.join(__dirname, 'ipc_link');
-            const crashFilePath = path.join(ipcDir, 'crash.json');
-            const fixFilePath = path.join(ipcDir, 'fix.json');
-
-            if (!fs.existsSync(ipcDir)) {
-                fs.mkdirSync(ipcDir, { recursive: true });
-            }
-
+            // extract broken DNA
             const specificBrokenFunction = extractBrokenFunction(brokenCode, err.stack);
-            console.log(`\n[ISOLATED CODE BLOCK]:\n${specificBrokenFunction}\n`);
 
-            if (fs.existsSync(crashFilePath)) {
-                fs.unlinkSync(crashFilePath);
-            }
+            console.log(`[AI DIAGNOSTICS] Transmitting to GROQ LPU...`);
+            const contract = "Ensure the function handles the request without throwing an error and return a valid JSON response.";
 
-            // Wirte the crash to shared memory
-            fs.writeFileSync(crashFilePath, JSON.stringify({
-                error: aiPromptMessage,
-                file: targetFile,
-                code_chunk: specificBrokenFunction
-            }));
+            const patchedCode = await getRepairPatch(specificBrokenFunction, aiPromptMessage, contract);
+            console.log(`[AI RESPONSE RECEIVED] Evaluating logic...`);
 
-            console.log(`[IPC] Memory flag written. Awaiting Python Daemon...`);
+            console.log(`\n[X-RAY] AI Output:`, patchedCode);
 
-            // The 10-millisecond polling loop
-            const aiData = await new Promise((resolve, reject) => {
-                let elapsed = 0;
-                const timeoutLimit = 45000;
+            // const isApproved = await testPatch(patchedCode, req, res);
 
-                const interval = setInterval(() => {
-                    if (fs.existsSync(fixFilePath)) {
-                        clearInterval(interval);
-                        const data = JSON.parse(fs.readFileSync(fixFilePath, 'utf8'));
-                        fs.unlinkSync(fixFilePath);
-                        resolve(data);
-                    }
-
-                    elapsed += 10;
-                    if (elapsed > timeoutLimit) {
-                        clearInterval(interval);
-                        reject(new Error("AI Daemon timeout. Generation took too long."));
-                    }
-                }, 10);
-            });
-
-            const rawAiOutput = aiData.fixed_code; 
-            console.log(`[IPC] AI Patch received in ${aiData.time_taken} seconds.`);
-
-            // The bouncer intevenes
-            const approvedPatch = validateAST(rawAiOutput);
-
-            if (approvedPatch) {
-                console.log(`[BOUNCER] Patch approved. Breaking the loop.`);
-
-                // Replace the exact broken chunk with the new fixed chunk
-                const fullHealedFile = brokenCode.replace(specificBrokenFunction, approvedPatch);
+            const bouncerResult = await testPatch(patchedCode, req, res);
+            
+            if (bouncerResult.approved) {
+                console.log(`[BOUNCER] Sandbox survival confirmed. Commencing Hot-Patch...`);
                 
-                // Execute the hot-patch
+                const fullHealedFile = brokenCode.replace(specificBrokenFunction, patchedCode);
                 const updateModule = applyHotPatch(targetFile, fullHealedFile);
 
                 if (updateModule) {
                     try {
                         console.log(`[HEALING COMPLETE] Re-running paused HTTP request...`);
-                        await updateModule.getRawMaterials(req, res, next);
-                        isHealed = true; // If successful, stops the while loop
+
+                        const functionNameMatch = specificBrokenFunction.match(/(?:const|let|var|async function|function)\s+([a-zA-Z0-9_]+)/);
+                        if (functionNameMatch && updateModule[functionNameMatch[1]]) {
+                            await updateModule[functionNameMatch[1]](req, res, next);
+                        } else {
+                            console.log("[!] Dynamic router fallback. Sending 200 OK.");
+                            res.status(200).json({ message: "Server dynamically healed, please refresh." });
+                        }
+                    
+                        isHealed = true;
                     } catch (retryErr) {
                         console.error("\n[SECONDARY CRASH IN RE-RUN]:", retryErr.message);
-                        // If hit a new bug after patching. Feed this back to the AI
-                        aiPromptMessage = `You fixed the first error, but the new code threw this error: ${retryErr.message}. Fix this new error.`;
+                        aiPromptMessage = `Your fix failed during actual execution: ${retryErr.message}, Fix it.`;
                     }
-                } else {
-                    res.status(500).json({ error: "Hot-patch failed to apply to memory." });
-                    break;
                 }
             } else {
-                 // If the bouncer rejected 
-                console.log(`[BOUNCER REJECTION] AI wrote unsafe or invalid code. Forcing retry.`);
-                
-                 // Update the prompt so the AI knows why it failed
-                aiPromptMessage = `Your last attempt failed Abstract Syntax Tree (AST) validation. 
-                 You either wrote invalid JavaScript, or tried to import forbidden modules like 'fs'.
-                 Do not hallucinate. Try again. Original Error: ${err.message}`;
+                console.log(`[BOUNCER REJECTION] AI code failed the VM Sandbox test. Retrying...`);
+                aiPromptMessage = `Original Error: ${err.message}
+                                Your last attempt tried to fix this, but it crashed the Sandbox validation with this NEW error: "${bouncerResult.reason}". 
+                                You must fix the Original Error AND ensure your new logic does not trigger the Sandbox error.`;
             }
-
-        } catch (apiError) {
-            console.error(`[AI CONNECTION FAILED]`, apiError.message);
-            break; // Break the loop if the Python server is dead
+        } catch (error) {
+            console.error(`[CRITICAL ENGINE FAILURE]`, error.message);
+            break;
         }
+
     }
 
     // If the loop finished all 3 attempts and didn't heal the system
