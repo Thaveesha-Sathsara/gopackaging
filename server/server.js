@@ -115,7 +115,29 @@ app.use(async (err, req, res, next) => {
             const specificBrokenFunction = extractBrokenFunction(brokenCode, err.stack);
 
             console.log(`[AI DIAGNOSTICS] Transmitting to GROQ LPU...`);
-            const contract = "Ensure the function handles the request without throwing an error and return a valid JSON response.";
+            const contract = "Ensure the function handles the request without throwing an error. CRITICAL BUSINESS LOGIC: If 'req.body' or 'req.body.filter' is undefined, the database query MUST fall back to returning ALL records (e.g. Model.find()). Do not search for undefined values.";
+
+            // RAG context injector
+            console.log(`[CONTEXT] Scanning file for database models...`);
+            let schemaContext = "";
+            const modelImports = brokenCode.match(/require\(['"]([^'"]+model)['"]\)/g);
+
+            if (modelImports) {
+                modelImports.forEach(importString => {
+                    // extract the path from the require string
+                    const relativePath = importString.match(/require\(['"]([^'"]+)['"]\)/)[1];
+
+                    let absolutePath = path.resolve(path.dirname(targetFile), relativePath);
+                    if (!absolutePath.endsWith('.js')) absolutePath += '.js';
+
+                    // read the file and add it to the AI's context
+                    if (fs.existsSync(absolutePath)) {
+                        schemaContext += `\n// Schema File: ${path.basename(absolutePath)}\n`;
+                        schemaContext += fs.readFileSync(absolutePath, 'utf8') + "\n";
+                    }
+                });
+                console.log(`[CONTEXT] Injected database schema(s) into AI.`);
+            }
 
             const patchedCode = await getRepairPatch(specificBrokenFunction, aiPromptMessage, contract);
             console.log(`[AI RESPONSE RECEIVED] Evaluating logic...`);
