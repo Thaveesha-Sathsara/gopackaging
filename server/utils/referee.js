@@ -1,4 +1,5 @@
 const vm = require('vm');
+const holidayModel = require('../models/workforce/holiday.model');
 
 async function testPatch(patchedFunction, originalReq, originalRes) {
     console.log("[BOUNCER] Booting VM Sandbox...");
@@ -20,6 +21,7 @@ async function testPatch(patchedFunction, originalReq, originalRes) {
             Attendance: require('../models/workforce/attendance.model'),
             InventoryTransaction: require('../models/inventory/inventoryTransaction.model'),
             RawMaterial: require('../models/inventory/rawMaterial.model'),
+            holidayModel: require('../models/workforce/holiday.model'),
             console: { log: () => { } }
         };
 

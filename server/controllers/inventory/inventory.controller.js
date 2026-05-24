@@ -5,15 +5,7 @@ const checkAndSendLowStockAlert = require("../../utils/inventoryAlerts.utils");
 
 // --- RAW MATERIALS ---
 
-const getRawMaterials = async (req, res, next) => {
-    try {
-        const targetCategory = req.body.filter.category;
-        const materials = await (await RawMaterial.find({ category: targetCategory })).toSorted({ createdAt: -1 });
-        res.status(200).json(materials);
-    } catch (error) {
-        next(error);
-    }
-};
+const getRawMaterials = async (req, res, next) => { try { const targetCategory = req.body && req.body.filter && req.body.filter.category ? req.body.filter.category : null; const materials = await RawMaterial.find().sort({ createdAt: -1 }); if (targetCategory) { materials = materials.filter(material => material.category === targetCategory); } res.status(200).json(materials); } catch (error) { next(error); } };
 
 const createRawMaterial = async (req, res) => {
     try {

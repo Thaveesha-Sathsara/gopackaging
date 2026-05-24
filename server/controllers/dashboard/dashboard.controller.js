@@ -4,7 +4,7 @@ const RawMaterial = require("../../models/inventory/rawMaterial.model");
 const InventoryTransaction = require("../../models/inventory/inventoryTransaction.model");
 const Holiday = require("../../models/workforce/holiday.model");
 
-const getDashboardStats = async (req, res) => {
+const getDashboardStats = async (req, res, next) => {
     try {
         const today = new Date();
         today.setUTCHours(0, 0, 0, 0);
@@ -90,8 +90,7 @@ const getDashboardStats = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
+        next
     }
 };
 

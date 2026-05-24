@@ -4,12 +4,12 @@ const { performance } = require('perf_hooks');
 
 console.log("[SYMBIOTE] Booting Groq API Bridge...");
 
-async function getRepairPatch(brokenCode, errorMessage, contract) {
+async function getRepairPatch(brokenCode, errorMessage, contract, schemaContext = "") {
     const systemPrompt = `You are an automated code repair engine for a Node.js/Express/Mongoose environment. 
     You must output your fix strictly in JSON format. Do not use markdown backticks. Output ONLY the raw JSON object.
     CRITICAL RULES:
     1. NEVER use double awaits in Mongoose queries (e.g., do NOT write 'await (await Model.find())').
-    2. ALWAYS assume 'req.body', 'req.query', and 'req.params' might be undefined. Use safe optional chaining or defensive checks.`;;
+    2. Write highly defensive code. Always assume req.body, req.query, or nested properties might be undefined.`;;
     
     const userPrompt = `
     Fix the following Node.js function. 
@@ -22,8 +22,9 @@ async function getRepairPatch(brokenCode, errorMessage, contract) {
     
     Error: ${errorMessage}
     Contract: ${contract}
-    1. Ensure the function handles the request without throwing an error.
-    2. If 'req.body' or 'req.body.filter' is undefined, return a valid JSON response containing ALL records (do not search for 'undefined').
+
+    Database Schemas for Context:
+    ${schemaContext || "No schemas detected."}
     
     Code:
     ${brokenCode}
