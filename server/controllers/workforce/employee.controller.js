@@ -1,7 +1,7 @@
 const Employees = require("../../models/workforce/employee.model");
 const JobRole = require("../../models/workforce/jobRole.model"); // Import JobRole
 
-const getAllEmployees = async (req, res) => {
+const getAllEmployees = async (req, res, next) => {
     try {
         // Populate role so we can see the name in the frontend list
         const employees = await Employees.find()
@@ -14,11 +14,11 @@ const getAllEmployees = async (req, res) => {
         res.status(200).json(employees);
     } catch (error) {
         console.error("Error fetching employees:", error);
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const getEmployeesById = async (req, res) => {
+const getEmployeesById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const employeesById = await Employees.findById(id).populate("role");
@@ -27,11 +27,11 @@ const getEmployeesById = async (req, res) => {
         }
         res.status(200).json(employeesById);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const patchEmployeeContent = async (req, res) => {
+const patchEmployeeContent = async (req, res, next) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
@@ -54,11 +54,11 @@ const patchEmployeeContent = async (req, res) => {
 
         res.status(200).json(employeeToUpdate);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const createEmployee = async (req, res) => {
+const createEmployee = async (req, res, next) => {
     try {
         const {
             employeeID,
@@ -129,18 +129,18 @@ const createEmployee = async (req, res) => {
 
     } catch (error) {
         console.error("Create Employee Error:", error);
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const deleteEmployee = async (req, res) => {
+const deleteEmployee = async (req, res, next) => {
     try {
         const employeeToDelete = await Employees.findByIdAndDelete(req.params.id);
         if (!employeeToDelete)
             return res.status(404).json({ message: "Employee not found" });
         res.status(200).json({ message: "Employee deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 

@@ -22,8 +22,8 @@ const path = require('path');
 const fs = require('fs');
 const { validateAST } = require('./utils/symbolicValidator');
 const { extractBrokenFunction } = require('./utils/astChunker');
-const { getRepairPatch } = require('./utils/api_bridge');
 const { testPatch } = require('./utils/referee');
+const { getLatentRepair } = require('./utils/tensor_bridge');
 
 
 dotenv.config();
@@ -70,7 +70,7 @@ app.use(async (err, req, res, next) => {
     // The exception filter
     // Do not trigger the AI for standard expected errors like missing logins
     if (err.message.includes('Not authorized') || err.message.includes('jwt')) {
-        console.log(`[ROUTER] Standard Auth Error ignored by AI. Returning 401.`);
+        console.log(`[ROUTER] Standard Auth Error ignored by exception filter. Returning 401.`);
         return res.status(401).json({ message: "Not authorized, please log in." });
     }
 
@@ -103,8 +103,6 @@ app.use(async (err, req, res, next) => {
     const maxAttempts = 3;
     let isHealed = false;
     
-    // Start with the original Node error
-    let aiPromptMessage = `Original Error: ${err.message}`;
 
     while (attempts < maxAttempts && !isHealed) {
         attempts++;
@@ -114,37 +112,17 @@ app.use(async (err, req, res, next) => {
             // extract broken DNA
             const specificBrokenFunction = extractBrokenFunction(brokenCode, err.stack);
 
-            console.log(`[AI DIAGNOSTICS] Transmitting to GROQ LPU...`);
-            const contract = "Ensure the function handles the request without throwing an error. CRITICAL BUSINESS LOGIC: If 'req.body' or 'req.body.filter' is undefined, the database query MUST fall back to returning ALL records (e.g. Model.find()). Do not search for undefined values.";
+            console.log(`[DIAGNOSTICS] Transmitting to LOCAL TENSOR CORE...`);
 
-            // RAG context injector
-            console.log(`[CONTEXT] Scanning file for database models...`);
-            let schemaContext = "";
-            const modelImports = brokenCode.match(/require\(['"]([^'"]+model)['"]\)/g);
+            const patchedCode = await getLatentRepair(specificBrokenFunction, err.message);
 
-            if (modelImports) {
-                modelImports.forEach(importString => {
-                    // extract the path from the require string
-                    const relativePath = importString.match(/require\(['"]([^'"]+)['"]\)/)[1];
-
-                    let absolutePath = path.resolve(path.dirname(targetFile), relativePath);
-                    if (!absolutePath.endsWith('.js')) absolutePath += '.js';
-
-                    // read the file and add it to the AI's context
-                    if (fs.existsSync(absolutePath)) {
-                        schemaContext += `\n// Schema File: ${path.basename(absolutePath)}\n`;
-                        schemaContext += fs.readFileSync(absolutePath, 'utf8') + "\n";
-                    }
-                });
-                console.log(`[CONTEXT] Injected database schema(s) into AI.`);
+            if (!patchedCode) {
+                console.log("[!] Tensor Engine returned structural diagnostics, but no code. Halting.");
+                break;
             }
 
-            const patchedCode = await getRepairPatch(specificBrokenFunction, aiPromptMessage, contract);
             console.log(`[AI RESPONSE RECEIVED] Evaluating logic...`);
-
             console.log(`\n[X-RAY] AI Output:`, patchedCode);
-
-            // const isApproved = await testPatch(patchedCode, req, res);
 
             const bouncerResult = await testPatch(patchedCode, req, res);
             

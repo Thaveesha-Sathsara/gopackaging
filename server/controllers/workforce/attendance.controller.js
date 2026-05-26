@@ -169,11 +169,11 @@ const getAttendanceSummary = async (req, res) => {
         res.status(200).json(sortedAttendance);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const getDailyAttendance = async (req, res) => {
+const getDailyAttendance = async (req, res, next) => {
     try {
         const { date } = req.query;
         if (!date) return res.status(400).json({ message: "Date required" });
@@ -181,11 +181,11 @@ const getDailyAttendance = async (req, res) => {
         const records = await Attendance.find({ date: searchDate }).populate({ path: "employee", select: "employeeID employeeName isActived", match: { isActived: true } });
         res.status(200).json(records);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const createDailyAttendance = async (req, res) => {
+const createDailyAttendance = async (req, res, next) => {
     try {
         const { date, records } = req.body;
         if (!date || !records) return res.status(400).json({ message: "Invalid data" });
@@ -297,11 +297,11 @@ const createDailyAttendance = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const getEmployeeAttendanceHistory = async (req, res) => {
+const getEmployeeAttendanceHistory = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { startDate, endDate } = req.query;
@@ -324,7 +324,7 @@ const getEmployeeAttendanceHistory = async (req, res) => {
             records
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 

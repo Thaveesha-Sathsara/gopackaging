@@ -1,15 +1,15 @@
 const JobRole = require("../../models/workforce/jobRole.model");
 
-const getJobRoles = async (req, res) => {
+const getJobRoles = async (req, res, next) => {
     try {
         const roles = await JobRole.find().sort({ name: 1 });
         res.status(200).json(roles);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const createJobRole = async (req, res) => {
+const createJobRole = async (req, res, next) => {
     try {
         const { name, startTime, endTime, allowOvertime, allowDoubleOT } = req.body;
         
@@ -32,16 +32,16 @@ const createJobRole = async (req, res) => {
         await newRole.save();
         res.status(201).json(newRole);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const deleteJobRole = async (req, res) => {
+const deleteJobRole = async (req, res, next) => {
     try {
         await JobRole.findByIdAndDelete(req.params.id);
         res.status(200).json({ message: "Role deleted" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 

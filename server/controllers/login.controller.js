@@ -65,7 +65,7 @@ const getOtpEmailTemplate = (otp) => {
 
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
-const authUser = asyncHandler(async (req, res) => {
+const authUser = asyncHandler(async (req, res, next) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
 
@@ -91,7 +91,7 @@ const authUser = asyncHandler(async (req, res) => {
 
 // @desc    Logout user / clear cookie
 // @route   POST /api/auth/logout
-const logoutUser = (req, res) => {
+const logoutUser = (req, res, next) => {
     res.cookie('jwt', '', {
         httpOnly: true,
         expires: new Date(0),
@@ -101,7 +101,7 @@ const logoutUser = (req, res) => {
 
 // @desc    Get user profile
 // @route   GET /api/auth/profile
-const getUserProfile = asyncHandler(async (req, res) => {
+const getUserProfile = asyncHandler(async (req, res, next) => {
     if (req.user) {
         res.json({
             _id: req.user._id,
@@ -115,7 +115,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
 
 // @desc    Send OTP to Admin Email
 // @route   POST /api/auth/send-otp
-const sendOTP = asyncHandler(async (req, res) => {
+const sendOTP = asyncHandler(async (req, res, next) => {
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -142,7 +142,7 @@ const sendOTP = asyncHandler(async (req, res) => {
 
 // @desc    Verify OTP & Update Profile
 // @route   PUT /api/auth/profile
-const updateProfile = asyncHandler(async (req, res) => {
+const updateProfile = asyncHandler(async (req, res, next) => {
     const { otp, newUsername, newPassword } = req.body;
     const user = await User.findById(req.user._id);
 

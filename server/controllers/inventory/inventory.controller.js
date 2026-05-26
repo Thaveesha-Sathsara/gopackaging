@@ -5,9 +5,16 @@ const checkAndSendLowStockAlert = require("../../utils/inventoryAlerts.utils");
 
 // --- RAW MATERIALS ---
 
-const getRawMaterials = async (req, res, next) => { try { const targetCategory = req.body && req.body.filter && req.body.filter.category ? req.body.filter.category : null; const materials = await RawMaterial.find().sort({ createdAt: -1 }); if (targetCategory) { materials = materials.filter(material => material.category === targetCategory); } res.status(200).json(materials); } catch (error) { next(error); } };
+const getRawMaterials = async (req, res, next) => {
+    try {
+        const materials = await RawMaterial.find().sort({ createdAt: -1 });
+        res.status(200).json(materials);
+    } catch (error) {
+        next(error);
+    }
+};
 
-const createRawMaterial = async (req, res) => {
+const createRawMaterial = async (req, res, next) => {
     try {
         const { name, category, unit, minimumLevel, description } = req.body;
 
@@ -34,11 +41,11 @@ const createRawMaterial = async (req, res) => {
         await newMaterial.save();
         res.status(201).json(newMaterial);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const adjustRawMaterialStock = async (req, res) => {
+const adjustRawMaterialStock = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { adjustment, type, date } = req.body;
@@ -79,11 +86,11 @@ const adjustRawMaterialStock = async (req, res) => {
         checkAndSendLowStockAlert(material, 'RawMaterial').catch(err => console.error("Alert Error:", err));
         res.status(200).json(material);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const updateRawMaterial = async (req, res) => {
+const updateRawMaterial = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { currentStock, materialID, ...updateData } = req.body;
@@ -93,11 +100,11 @@ const updateRawMaterial = async (req, res) => {
         if (!updatedMaterial) return res.status(404).json({ message: "Material not found" });
         res.status(200).json(updatedMaterial);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const deleteRawMaterial = async (req, res) => {
+const deleteRawMaterial = async (req, res, next) => {
     try {
         const { id } = req.params;
         const deletedItem = await RawMaterial.findByIdAndDelete(id);
@@ -108,22 +115,22 @@ const deleteRawMaterial = async (req, res) => {
         
         res.status(200).json({ message: "Item deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // --- FINISHED GOODS ---
 
-const getFinishedGoods = async (req, res) => {
+const getFinishedGoods = async (req, res, next) => {
     try {
         const goods = await FinishedGood.find().sort({ createdAt: -1 });
         res.status(200).json(goods);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const createFinishedGood = async (req, res) => {
+const createFinishedGood = async (req, res, next) => {
     try {
         const { name, unit, description } = req.body;
 
@@ -141,11 +148,11 @@ const createFinishedGood = async (req, res) => {
         await newProduct.save();
         res.status(201).json(newProduct);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const adjustFinishedGoodStock = async (req, res) => {
+const adjustFinishedGoodStock = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { adjustment, type, date } = req.body; 
@@ -184,11 +191,11 @@ const adjustFinishedGoodStock = async (req, res) => {
         await checkAndSendLowStockAlert(product, 'FinishedGood');
         res.status(200).json(product);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const updateFinishedGood = async (req, res) => {
+const updateFinishedGood = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { currentStock, productID, ...updateData } = req.body;
@@ -198,11 +205,11 @@ const updateFinishedGood = async (req, res) => {
         if (!updatedProduct) return res.status(404).json({ message: "Product not found" });
         res.status(200).json(updatedProduct);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const deleteFinishedGood = async (req, res) => {
+const deleteFinishedGood = async (req, res, next) => {
     try {
         const { id } = req.params;
         const deletedItem = await FinishedGood.findByIdAndDelete(id);
@@ -211,17 +218,17 @@ const deleteFinishedGood = async (req, res) => {
         
         res.status(200).json({ message: "Item deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-const getItemHistory = async (req, res) => {
+const getItemHistory = async (req, res, next) => {
     try {
         const { id } = req.params;
         const history = await InventoryTransaction.find({ item: id }).sort({ date: -1, createdAt: -1 });
         res.status(200).json(history);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
