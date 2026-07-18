@@ -17,6 +17,7 @@ const emailRoutes = require('./routes/email.routes');
 const reportsRoutes = require('./routes/reports.routes');
 const runDailyReport = require('./utils/dailyReports');
 const jobRoleRoutes = require('./routes/jobRole.Routes');
+const asphalt = require('asphalt-core');
 
 dotenv.config();
 
@@ -56,6 +57,17 @@ app.use((err, req, res, next) => {
         stack: process.env.NODE_ENV === 'production' ? null : err.stack,
     });
 });
+
+app.use(asphalt({
+    tensorUrl: 'http://127.0.0.1:5050/diagnose',
+    models: {
+        Employee,
+        Attendance,
+        RawMaterial,
+        InventoryTransaction,
+        Holiday
+    }
+}));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`server is running on port ${PORT}`));
