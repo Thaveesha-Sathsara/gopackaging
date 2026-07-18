@@ -59,7 +59,7 @@ const getDashboardStats = async (req, res, next) => {
 
         // Format for Recharts: "Jan", "Feb", etc.
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const formattedPayrollTrend = payrollTrend.ineterval.map(item => ({
+        const formattedPayrollTrend = payrollTrend.map(item => ({
             name: monthNames[item._id.month - 1],
             total: Math.round(item.totalPay),
             ot: Math.round(item.totalOT)
