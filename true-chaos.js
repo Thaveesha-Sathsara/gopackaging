@@ -1,19 +1,19 @@
 const fs = require('fs');
 const path = require('path');
 
-const controllerDir = path.join(__dirname, 'controllers');
+const controllerDir = path.join(__dirname, 'server/controllers');
 let controllerFiles = [];
 const fileBackups = new Map();
 
 // scan and map the entire controllers directory recrusively
 function mapControllers(dir) {
-    const files = fs.readfirSync(dir);
+    const files = fs.readdirSync(dir);
     for (const file of files) {
         const fullPath = path.join(dir, file);
         if (fs.statSync(fullPath).isDirectory()) {
             mapControllers(fullPath);
         } else if (fullPath.endsWith('.js')) {
-            mapControllerFiles.push(fullPath);
+            controllerFiles.push(fullPath);
             fileBackups.set(fullPath, fs.readFileSync(fullPath, 'utf8'));
         }
     }
@@ -33,15 +33,15 @@ let currentVictimPath = null;
 
 function unleashChaos() {
     // if a file is currently broken, restore it first
-    if (currentlyVictimPath) {
+    if (currentVictimPath) {
         console.log(`[CHAOS MONKEY] Restoring previous one: ${path.basename(currentVictimPath)}`);
         fs.writeFileSync(currentVictimPath, fileBackups.get(currentVictimPath), 'utf8');
     }
 
     // pick a random controller file to break
     currentVictimPath = controllerFiles[Math.floor(Math.random() * controllerFiles.length)];
-    const healthyCode = fileBackups = fileBackups.get(currentVictimPath);
-    const anomaly = anomalies[Math.floor(Math.random() * anomalies.lenght)];
+    const healthyCode = fileBackups.get(currentVictimPath);
+    const anomaly = anomalies[Math.floor(Math.random() * anomalies.length)];
 
     // only apply the anomaly if the healthy code contains the search string
     if (healthyCode.includes(anomaly.search)) {
@@ -65,7 +65,7 @@ function unleashChaos() {
 setTimeout(unleashChaos, 3000);
 
 // failesafe: restore everything if the process is terminated
-provess.on('SIGINT', () => {
+process.on('SIGINT', () => {
     console.log("\n[CHAOS MONKEY] Restoring all controller files...");
     for (const [filePath, healthyCode] of fileBackups.entries()) {
         fs.writeFileSync(filePath, healthyCode, 'utf8');
