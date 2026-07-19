@@ -57,7 +57,7 @@ app.use('/api/workforce/job-roles', jobRoleRoutes);
 app.use(asphalt({
     tensorUrl: 'http://127.0.0.1:5050/diagnose',
     models: {
-        Employee,
+        Employees: Employee,
         Attendance,
         RawMaterial,
         InventoryTransaction,
