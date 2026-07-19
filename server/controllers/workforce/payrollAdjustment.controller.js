@@ -88,7 +88,7 @@ const getMonthlyAdjustments = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -121,7 +121,7 @@ const saveMonthlyAdjustments = async (req, res) => {
         res.status(200).json({ message: "Adjustments saved successfully" });
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 

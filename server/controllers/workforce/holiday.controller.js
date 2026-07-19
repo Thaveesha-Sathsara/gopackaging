@@ -13,7 +13,7 @@ const getHolidays = async (req, res) => {
         const holidays = await Holiday.find().sort({ date: 1 });
         res.status(200).json(holidays);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -42,7 +42,7 @@ const createHoliday = async (req, res) => {
 
         res.status(201).json(holiday);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -53,7 +53,7 @@ const deleteHoliday = async (req, res) => {
         await Holiday.findByIdAndDelete(id);
         res.status(200).json({ message: "Holiday removed" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 

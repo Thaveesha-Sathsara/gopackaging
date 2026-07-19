@@ -169,7 +169,7 @@ const getAttendanceSummary = async (req, res) => {
         res.status(200).json(sortedAttendance);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -181,7 +181,7 @@ const getDailyAttendance = async (req, res) => {
         const records = await Attendance.find({ date: searchDate }).populate({ path: "employee", select: "employeeID employeeName isActived", match: { isActived: true } });
         res.status(200).json(records);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -297,7 +297,7 @@ const createDailyAttendance = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -324,7 +324,7 @@ const getEmployeeAttendanceHistory = async (req, res) => {
             records
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 

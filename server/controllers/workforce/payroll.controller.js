@@ -103,7 +103,7 @@ const getPayrollSummary = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching payroll summary:", error);
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -227,7 +227,7 @@ const getEmployeePayrollDetails = async (req, res) => {
 
     } catch (error) {
         console.error(error); 
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 

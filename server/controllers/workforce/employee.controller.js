@@ -14,7 +14,7 @@ const getAllEmployees = async (req, res) => {
         res.status(200).json(employees);
     } catch (error) {
         console.error("Error fetching employees:", error);
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -27,7 +27,7 @@ const getEmployeesById = async (req, res) => {
         }
         res.status(200).json(employeesById);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -54,7 +54,7 @@ const patchEmployeeContent = async (req, res) => {
 
         res.status(200).json(employeeToUpdate);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -129,7 +129,7 @@ const createEmployee = async (req, res) => {
 
     } catch (error) {
         console.error("Create Employee Error:", error);
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -140,7 +140,7 @@ const deleteEmployee = async (req, res) => {
             return res.status(404).json({ message: "Employee not found" });
         res.status(200).json({ message: "Employee deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 

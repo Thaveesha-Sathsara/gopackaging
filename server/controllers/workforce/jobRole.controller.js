@@ -5,7 +5,7 @@ const getJobRoles = async (req, res) => {
         const roles = await JobRole.find().sort({ name: 1 });
         res.status(200).json(roles);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -32,7 +32,7 @@ const createJobRole = async (req, res) => {
         await newRole.save();
         res.status(201).json(newRole);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
@@ -41,7 +41,7 @@ const deleteJobRole = async (req, res) => {
         await JobRole.findByIdAndDelete(req.params.id);
         res.status(200).json({ message: "Role deleted" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 
