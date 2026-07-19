@@ -1,6 +1,6 @@
 const sendEmail = require("../config/email.config"); // Correct path to your config
 
-const sendTestEmail = async (req, res) => {
+const sendTestEmail = async (req, res, next) => {
     try {
         const { to, subject, message } = req.body;
         
@@ -12,7 +12,7 @@ const sendTestEmail = async (req, res) => {
             res.status(500).json({ message: "Failed to send email" });
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error)
     }
 };
 

@@ -8,7 +8,7 @@ const normalizeDate = (dateString) => {
 };
 
 // Get all holidays
-const getHolidays = async (req, res) => {
+const getHolidays = async (req, res, next) => {
     try {
         const holidays = await Holiday.find().sort({ date: 1 });
         res.status(200).json(holidays);
@@ -18,7 +18,7 @@ const getHolidays = async (req, res) => {
 };
 
 // Add a new holiday
-const createHoliday = async (req, res) => {
+const createHoliday = async (req, res, next) => {
     try {
         const { date, name, type } = req.body;
         
@@ -47,7 +47,7 @@ const createHoliday = async (req, res) => {
 };
 
 // Delete a holiday
-const deleteHoliday = async (req, res) => {
+const deleteHoliday = async (req, res, next) => {
     try {
         const { id } = req.params;
         await Holiday.findByIdAndDelete(id);

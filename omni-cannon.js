@@ -18,6 +18,9 @@ const instance = autocannon({
     connections: 200,
     duration: 999999, // Runs infinitely until you press CTRL+C
     requests: targetRoutes,
+    headers: {
+        'Cookie': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQzYThmMjQxNzljZmFmMjQ2ODY2NCIsImlhdCI6MTc4NDQ4MTY0NSwiZXhwIjoxNzg0NTY4MDQ1fQ.VBAJMJMYQ2DtDaiWlRHUowgMm_WyQHGzFs5b4KMczLg'
+    }
 }, console.log);
 
 autocannon.track(instance, { renderProgressBar: true });

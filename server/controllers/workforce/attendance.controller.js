@@ -115,7 +115,7 @@ const calculateTimeLogic = (startTimeStr, endTimeStr, isHolidayOrSunday, options
     }
 };
 
-const getAttendanceSummary = async (req, res) => {
+const getAttendanceSummary = async (req, res, next) => {
     try {
         const { startDate, endDate } = req.query;
         if (!startDate || !endDate) return res.status(400).json({ message: "Dates required" });
@@ -173,7 +173,7 @@ const getAttendanceSummary = async (req, res) => {
     }
 };
 
-const getDailyAttendance = async (req, res) => {
+const getDailyAttendance = async (req, res, next) => {
     try {
         const { date } = req.query;
         if (!date) return res.status(400).json({ message: "Date required" });
@@ -185,7 +185,7 @@ const getDailyAttendance = async (req, res) => {
     }
 };
 
-const createDailyAttendance = async (req, res) => {
+const createDailyAttendance = async (req, res, next) => {
     try {
         const { date, records } = req.body;
         if (!date || !records) return res.status(400).json({ message: "Invalid data" });
@@ -301,7 +301,7 @@ const createDailyAttendance = async (req, res) => {
     }
 };
 
-const getEmployeeAttendanceHistory = async (req, res) => {
+const getEmployeeAttendanceHistory = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { startDate, endDate } = req.query;

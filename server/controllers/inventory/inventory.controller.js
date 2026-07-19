@@ -5,7 +5,7 @@ const checkAndSendLowStockAlert = require("../../utils/inventoryAlerts.utils");
 
 // --- RAW MATERIALS ---
 
-const getRawMaterials = async (req, res) => {
+const getRawMaterials = async (req, res, next) => {
     try {
         const materials = await RawMaterial.find().sort({ createdAt: -1 });
         res.status(200).json(materials);
@@ -14,7 +14,7 @@ const getRawMaterials = async (req, res) => {
     }
 };
 
-const createRawMaterial = async (req, res) => {
+const createRawMaterial = async (req, res, next) => {
     try {
         const { name, category, unit, minimumLevel, description } = req.body;
 
@@ -45,7 +45,7 @@ const createRawMaterial = async (req, res) => {
     }
 };
 
-const adjustRawMaterialStock = async (req, res) => {
+const adjustRawMaterialStock = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { adjustment, type, date } = req.body;
@@ -90,7 +90,7 @@ const adjustRawMaterialStock = async (req, res) => {
     }
 };
 
-const updateRawMaterial = async (req, res) => {
+const updateRawMaterial = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { currentStock, materialID, ...updateData } = req.body;
@@ -104,7 +104,7 @@ const updateRawMaterial = async (req, res) => {
     }
 };
 
-const deleteRawMaterial = async (req, res) => {
+const deleteRawMaterial = async (req, res, next) => {
     try {
         const { id } = req.params;
         const deletedItem = await RawMaterial.findByIdAndDelete(id);
@@ -121,7 +121,7 @@ const deleteRawMaterial = async (req, res) => {
 
 // --- FINISHED GOODS ---
 
-const getFinishedGoods = async (req, res) => {
+const getFinishedGoods = async (req, res, next) => {
     try {
         const goods = await FinishedGood.find().sort({ createdAt: -1 });
         res.status(200).json(goods);
@@ -130,7 +130,7 @@ const getFinishedGoods = async (req, res) => {
     }
 };
 
-const createFinishedGood = async (req, res) => {
+const createFinishedGood = async (req, res, next) => {
     try {
         const { name, unit, description } = req.body;
 
@@ -152,7 +152,7 @@ const createFinishedGood = async (req, res) => {
     }
 };
 
-const adjustFinishedGoodStock = async (req, res) => {
+const adjustFinishedGoodStock = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { adjustment, type, date } = req.body; 
@@ -195,7 +195,7 @@ const adjustFinishedGoodStock = async (req, res) => {
     }
 };
 
-const updateFinishedGood = async (req, res) => {
+const updateFinishedGood = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { currentStock, productID, ...updateData } = req.body;
@@ -209,7 +209,7 @@ const updateFinishedGood = async (req, res) => {
     }
 };
 
-const deleteFinishedGood = async (req, res) => {
+const deleteFinishedGood = async (req, res, next) => {
     try {
         const { id } = req.params;
         const deletedItem = await FinishedGood.findByIdAndDelete(id);
@@ -223,7 +223,7 @@ const deleteFinishedGood = async (req, res) => {
 };
 
 
-const getItemHistory = async (req, res) => {
+const getItemHistory = async (req, res, next) => {
     try {
         const { id } = req.params;
         const history = await InventoryTransaction.find({ item: id }).sort({ date: -1, createdAt: -1 });

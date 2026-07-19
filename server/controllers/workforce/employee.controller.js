@@ -1,7 +1,7 @@
 const Employees = require("../../models/workforce/employee.model");
 const JobRole = require("../../models/workforce/jobRole.model"); // Import JobRole
 
-const getAllEmployees = async (req, res) => {
+const getAllEmployees = async (req, res, next) => {
     try {
         // Populate role so we can see the name in the frontend list
         const employees = await Employees.find()
@@ -18,7 +18,7 @@ const getAllEmployees = async (req, res) => {
     }
 };
 
-const getEmployeesById = async (req, res) => {
+const getEmployeesById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const employeesById = await Employees.findById(id).populate("role");
@@ -31,7 +31,7 @@ const getEmployeesById = async (req, res) => {
     }
 };
 
-const patchEmployeeContent = async (req, res) => {
+const patchEmployeeContent = async (req, res, next) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
@@ -58,7 +58,7 @@ const patchEmployeeContent = async (req, res) => {
     }
 };
 
-const createEmployee = async (req, res) => {
+const createEmployee = async (req, res, next) => {
     try {
         const {
             employeeID,
@@ -133,7 +133,7 @@ const createEmployee = async (req, res) => {
     }
 };
 
-const deleteEmployee = async (req, res) => {
+const deleteEmployee = async (req, res, next) => {
     try {
         const employeeToDelete = await Employees.findByIdAndDelete(req.params.id);
         if (!employeeToDelete)

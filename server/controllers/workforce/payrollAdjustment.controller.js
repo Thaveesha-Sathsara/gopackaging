@@ -13,7 +13,7 @@ const getDateRange = (dateString) => {
     return { start: startOfDay, end: endOfDay };
 };
 
-const getMonthlyAdjustments = async (req, res) => {
+const getMonthlyAdjustments = async (req, res, next) => {
     try {
         const { date } = req.query; 
         if (!date) return res.status(400).json({ message: "Date required" });
@@ -92,7 +92,7 @@ const getMonthlyAdjustments = async (req, res) => {
     }
 };
 
-const saveMonthlyAdjustments = async (req, res) => {
+const saveMonthlyAdjustments = async (req, res, next) => {
     // ... (Your existing save logic remains exactly the same) ...
     try {
         const { date, records } = req.body;

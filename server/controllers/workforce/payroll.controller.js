@@ -9,7 +9,7 @@ const mongoose = require("mongoose");
 const getFirstOfMonth = (date) => new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
 const getPrevMonth = (date) => new Date(Date.UTC(date.getFullYear(), date.getMonth() - 1, 1));
 
-const getPayrollSummary = async (req, res) => {
+const getPayrollSummary = async (req, res, next) => {
     try {
         const { startDate, endDate } = req.query;
         if (!startDate || !endDate) return res.status(400).json({ message: "Date range required" });
@@ -107,7 +107,7 @@ const getPayrollSummary = async (req, res) => {
     }
 };
 
-const getEmployeePayrollDetails = async (req, res) => {
+const getEmployeePayrollDetails = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { startDate, endDate } = req.query;

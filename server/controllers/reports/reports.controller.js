@@ -6,7 +6,7 @@ const InventoryTransaction = require("../../models/inventory/inventoryTransactio
 const mongoose = require("mongoose");
 
 // --- 1. EMPLOYEE 360 REPORT ---
-const getEmployeeReport = async (req, res) => {
+const getEmployeeReport = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -84,7 +84,7 @@ const getEmployeeReport = async (req, res) => {
 };
 
 // --- 2. INVENTORY HEALTH REPORT ---
-const getInventoryReport = async (req, res) => {
+const getInventoryReport = async (req, res, next) => {
     try {
         // 1. Raw Materials Health
         const rawMaterials = await RawMaterial.find();
