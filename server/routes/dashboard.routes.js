@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const {
-    getDashboardStats
-} = require('../controllers/dashboard/dashboard.controller');
-
 const { protect } = require('../middleware/auth.middleware');
+const { proxy } = require('../utils/asphalt-proxy');
 
-router.get("/", protect, getDashboardStats);
+const path = 'workforce/dashboard.controller';
+
+router.get("/", protect, hotProxy(path, 'getDashboardStats'));
 
 module.exports = router;

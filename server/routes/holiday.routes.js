@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { getHolidays, createHoliday, deleteHoliday } = require("../controllers/workforce/holiday.controller");
+const { hotProxy } = require('../utils/asphalt-proxy');
 
-router.get("/", getHolidays);
-router.post("/", createHoliday);
-router.delete("/:id", deleteHoliday);
+const path = 'workforce/holiday.controller';
+
+router.get("/", hotProxy(path, 'getHolidays'));
+router.post("/", hotProxy(path, 'createHoliday'));
+router.delete("/:id", hotProxy(path, 'deleteHoliday'));
 
 module.exports = router;

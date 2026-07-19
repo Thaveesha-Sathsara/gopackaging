@@ -1,23 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    getAttendanceSummary,
-    createDailyAttendance,
-    getDailyAttendance,
-    getEmployeeAttendanceHistory
-} = require('../controllers/workforce/attendance.controller');
 const { protect } = require('../middleware/auth.middleware');
+const { hotProxy } = require('../utils/asphalt-proxy');
 
-// Route for getting the date-range summary
-// GET /api/workforce/attendance/summary?startDate=...&endDate=...
-router.get("/summary", protect, getAttendanceSummary);
+const path = 'workforce/attendance.controller';
 
-router.get("/daily", protect, getDailyAttendance);
-
-// Route for saving the daily attendance sheet
-// POST /api/workforce/attendance/daily
-router.post("/daily", protect, createDailyAttendance);
-
-router.get("/employee/:id", protect, getEmployeeAttendanceHistory);
+router.get("/summary", protect, hotProxy(path, 'getAttendanceSummary'));
+router.get("/daily", protect, hotProxy(path, 'getDailyAttendance'));
+router.post("/daily", protect, hotProxy(path, 'createDailyAttendance'));
+router.get("/employee/:id", protect, hotProxy(path, 'getEmployeeAttendanceHistory'));
 
 module.exports = router;

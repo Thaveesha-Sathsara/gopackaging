@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const {
-    getInventoryReport
-} = require('../controllers/reports/reports.controller');
-
 const { protect } = require('../middleware/auth.middleware');
+const { hotProxy } = require('../utils/asphalt-proxy');
 
-router.get("reports/inventory-reports", protect, getInventoryReport);
+const path = 'inventory/inventory.controller';
+
+router.get("reports/inventory-reports", protect, hotProxy(path, 'getInventoryReport'));
 
 module.exports = router;

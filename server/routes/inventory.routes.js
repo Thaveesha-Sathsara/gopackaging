@@ -1,34 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth.middleware');
-const {
-    getRawMaterials,
-    createRawMaterial,
-    adjustRawMaterialStock,
-    updateRawMaterial,
-    getFinishedGoods,
-    deleteRawMaterial,
-    deleteFinishedGood,
-    createFinishedGood,
-    adjustFinishedGoodStock,
-    updateFinishedGood,
-    getItemHistory,
-} = require('../controllers/inventory/inventory.controller');
+const { hotProxy } = require('../utils/asphalt-proxy');
+
+const path = 'inventory/inventory.controller';
 
 // Raw Materials
-router.get('/raw-materials', protect, getRawMaterials);
-router.post('/raw-materials', protect, createRawMaterial);
-router.patch('/raw-materials/:id/adjust', protect, adjustRawMaterialStock);
-router.patch('/raw-materials/:id', protect, updateRawMaterial);
-router.delete('/raw-materials/:id', protect, deleteRawMaterial);
+router.get('/raw-materials', protect, hotProxy(path, 'getRawMaterials'));
+router.post('/raw-materials', protect, hotProxy(path, 'createRawMaterial'));
+router.patch('/raw-materials/:id/adjust', protect, hotProxy(path, 'adjustRawMaterialStock'));
+router.patch('/raw-materials/:id', protect, hotProxy(path, 'updateRawMaterial'));
+router.delete('/raw-materials/:id', protect, hotProxy(path, 'deleteRawMaterial'));
 
 // Finished Goods
-router.get('/finished-goods', protect, getFinishedGoods);
-router.post('/finished-goods', protect, createFinishedGood);
-router.patch('/finished-goods/:id/adjust', protect, adjustFinishedGoodStock);
-router.patch('/finished-goods/:id', protect, updateFinishedGood);
-router.delete('/finished-goods/:id', protect, deleteFinishedGood);
+router.get('/finished-goods', protect, hotProxy(path, 'getFinishedGoods'));
+router.post('/finished-goods', protect, hotProxy(path, 'createFinishedGood'));
+router.patch('/finished-goods/:id/adjust', protect, hotProxy(path, 'adjustFinishedGoodStock'));
+router.patch('/finished-goods/:id', protect, hotProxy(path, 'updateFinishedGood'));
+router.delete('/finished-goods/:id', protect, hotProxy(path, 'deleteFinishedGood'));
 
-router.get('/history/:id', protect, getItemHistory);
+router.get('/history/:id', protect, hotProxy(path, 'getItemHistory'));
 
 module.exports = router;
