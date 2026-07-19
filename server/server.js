@@ -18,6 +18,11 @@ const reportsRoutes = require('./routes/reports.routes');
 const runDailyReport = require('./utils/dailyReports');
 const jobRoleRoutes = require('./routes/jobRole.Routes');
 const asphalt = require('asphalt-core');
+const Employee = require('./models/workforce/employee.model');
+const Attendance = require('./models/workforce/attendance.model');
+const RawMaterial = require('./models/inventory/rawMaterial.model');
+const InventoryTransaction = require('./models/inventory/inventoryTransaction.model');
+const Holiday = require('./models/workforce/holiday.model');
 
 dotenv.config();
 
@@ -49,15 +54,6 @@ app.use('/api/email', emailRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/workforce/job-roles', jobRoleRoutes);
 
-app.use((err, req, res, next) => {
-    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-    res.status(statusCode);
-    res.json({
-        message: err.message,
-        stack: process.env.NODE_ENV === 'production' ? null : err.stack,
-    });
-});
-
 app.use(asphalt({
     tensorUrl: 'http://127.0.0.1:5050/diagnose',
     models: {
@@ -68,6 +64,16 @@ app.use(asphalt({
         Holiday
     }
 }));
+
+
+app.use((err, req, res, next) => {
+    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    res.status(statusCode);
+    res.json({
+        message: err.message,
+        stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+    });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`server is running on port ${PORT}`));
